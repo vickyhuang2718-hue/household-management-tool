@@ -1,12 +1,24 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, ListChecks, LogOut, Package, ShoppingCart } from "lucide-react";
+import {
+  CalendarDays,
+  ListChecks,
+  LogOut,
+  Package,
+  Settings,
+  ShoppingCart,
+} from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { initials, memberToneClass, membersQuery, profileQuery } from "@/lib/household";
+import {
+  householdQuery,
+  memberToneClass,
+  membersQuery,
+  profileQuery,
+} from "@/lib/household";
 import { cn } from "@/lib/utils";
 
 const NAV = [
