@@ -50,7 +50,7 @@ function ShoppingPage() {
     queryClient.invalidateQueries({ queryKey: ["shopping_items"] });
 
   const addItem = useMutation({
-    mutationFn: async (values: { name: string; category?: string }) => {
+    mutationFn: async (values: { name: string; category?: string | undefined }) => {
       const { error } = await supabase.from("shopping_items").insert(values);
       if (error) throw new Error(error.message);
     },
