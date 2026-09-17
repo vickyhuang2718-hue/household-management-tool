@@ -276,12 +276,6 @@ function InventoryPage() {
                         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
                           <p className="flex min-w-0 items-center gap-2 font-medium text-foreground">
                             <span className="truncate">{item.name}</span>
-                            {item.status === "out" ? (
-                              <TriangleAlert
-                                className="size-4 shrink-0 text-clay"
-                                aria-label="没有了"
-                              />
-                            ) : null}
                             <button
                               type="button"
                               onClick={() =>
