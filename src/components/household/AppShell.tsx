@@ -3,7 +3,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CalendarDays,
   ListChecks,
-  LogOut,
   Package,
   Settings,
   ShoppingCart,
@@ -150,9 +149,6 @@ export function AppShell({
               <Link to="/settings">
                 <Settings className="size-4" />
               </Link>
-            </Button>
-            <Button variant="ghost" size="icon" aria-label="退出登录" onClick={signOut}>
-              <LogOut className="size-4" />
             </Button>
           </div>
         </div>
