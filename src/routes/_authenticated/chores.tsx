@@ -21,6 +21,7 @@ import {
   FREQUENCY_LABELS,
   type Chore,
   choresQuery,
+  memberBadge,
   memberToneClass,
   membersQuery,
   nextDueDate,
@@ -148,7 +149,7 @@ function ChoreBoard() {
                 memberToneClass[member.color] ?? "bg-muted text-foreground",
               )}
             >
-              {member.emoji}
+              {memberBadge(member)}
             </span>
             {member.name}
           </button>
@@ -206,7 +207,7 @@ function ChoreGroup({
 }: {
   heading: string;
   chores: Chore[];
-  members: { id: string; name: string; color: string; emoji: string }[];
+  members: { id: string; name: string; color: string; initial: string }[];
   onComplete: (chore: Chore) => void;
   tone?: "destructive";
 }) {
@@ -259,7 +260,7 @@ function ChoreGroup({
                   memberToneClass[member?.color ?? ""] ?? "bg-muted text-foreground",
                 )}
               >
-                {member ? member.emoji : "?"}
+                {member ? memberBadge(member) : "?"}
               </span>
             </li>
           );

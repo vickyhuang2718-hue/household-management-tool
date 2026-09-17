@@ -11,12 +11,13 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   COLOR_CHOICES,
   COLOR_LABELS,
-  EMOJI_CHOICES,
   householdQuery,
   isAdminQuery,
+  memberBadge,
   memberToneClass,
   membersQuery,
   profileQuery,
+  type Member,
 } from "@/lib/household";
 import { cn } from "@/lib/utils";
 
@@ -26,10 +27,10 @@ export const Route = createFileRoute("/_authenticated/settings")({
       { title: "家庭设置 — 家事管家" },
       {
         name: "description",
-        content: "修改家庭名称，挑选属于自己的头像图标和颜色。",
+        content: "修改家庭名称、自己的称呼、头像上的字和颜色。",
       },
       { property: "og:title", content: "家庭设置 — 家事管家" },
-      { property: "og:description", content: "修改家庭名称，挑选自己的头像图标。" },
+      { property: "og:description", content: "修改家庭名称和每个人的头像颜色。" },
     ],
   }),
   component: SettingsPage,
@@ -45,11 +46,24 @@ function SettingsPage() {
 
   const me = members.find((member) => member.id === profile?.member_id) ?? null;
   const [householdName, setHouseholdName] = useState("");
+  const [myName, setMyName] = useState("");
+  const [myInitial, setMyInitial] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (household?.name) setHouseholdName(household.name);
   }, [household?.name]);
+
+  useEffect(() => {
+    if (me) {
+      setMyName(me.name);
+      setMyInitial(memberBadge(me));
+    }
+  }, [me?.id, me?.name, me?.initial]);
+
+  function refreshMembers() {
+    queryClient.invalidateQueries({ queryKey: ["members"] });
+  }
 
   async function saveHouseholdName(event: React.FormEvent) {
     event.preventDefault();
@@ -68,18 +82,40 @@ function SettingsPage() {
     toast.success("家庭名称已更新");
   }
 
-  async function updateMe(patch: { emoji?: string; color?: string }) {
+  async function saveMyProfile(event: React.FormEvent) {
+    event.preventDefault();
     if (!me) return;
-    const { error } = await supabase.from("members").update(patch).eq("id", me.id);
+    const name = myName.trim();
+    const initial = [...myInitial.trim()][0] ?? "";
+    if (!name) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from("members")
+      .update({ name, initial })
+      .eq("id", me.id);
+    setSaving(false);
     if (error) {
       toast.error(error.message);
       return;
     }
-    queryClient.invalidateQueries({ queryKey: ["members"] });
+    refreshMembers();
+    toast.success("已保存");
+  }
+
+  async function updateColor(member: Member, color: string) {
+    const { error } = await supabase
+      .from("members")
+      .update({ color })
+      .eq("id", member.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    refreshMembers();
   }
 
   return (
-    <AppShell title="家庭设置" subtitle="名称、头像，都可以自己定">
+    <AppShell title="家庭设置" subtitle="名称、称呼、颜色，都可以自己定">
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
         <h2 className="text-sm font-semibold text-foreground">家庭名称</h2>
         {isAdmin ? (
@@ -107,65 +143,52 @@ function SettingsPage() {
       </section>
 
       <section className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
-        <h2 className="text-sm font-semibold text-foreground">我的头像</h2>
+        <h2 className="text-sm font-semibold text-foreground">我的资料</h2>
         {me ? (
           <>
             <div className="mt-3 flex items-center gap-3">
               <span
                 className={cn(
-                  "flex size-11 items-center justify-center rounded-full text-lg",
+                  "flex size-11 items-center justify-center rounded-full text-lg font-semibold",
                   memberToneClass[me.color] ?? "bg-muted text-foreground",
                 )}
               >
-                {me.emoji}
+                {[...myInitial.trim()][0] ?? memberBadge(me)}
               </span>
-              <span className="font-medium text-foreground">{me.name}</span>
+              <span className="font-medium text-foreground">{myName || me.name}</span>
             </div>
 
-            <p className="mt-4 text-xs font-medium text-muted-foreground">图标</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {EMOJI_CHOICES.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  aria-label={`选择图标 ${emoji}`}
-                  onClick={() => updateMe({ emoji })}
-                  className={cn(
-                    "flex size-10 items-center justify-center rounded-xl border text-lg transition-colors",
-                    me.emoji === emoji
-                      ? "border-primary bg-primary/10"
-                      : "border-border bg-background hover:border-primary",
-                  )}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
+            <form className="mt-4 space-y-3" onSubmit={saveMyProfile}>
+              <div className="space-y-1.5">
+                <Label htmlFor="my-name">称呼</Label>
+                <Input
+                  id="my-name"
+                  value={myName}
+                  onChange={(event) => setMyName(event.target.value)}
+                  placeholder="你在家里的称呼"
+                  maxLength={20}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="my-initial">头像上的字</Label>
+                <Input
+                  id="my-initial"
+                  value={myInitial}
+                  onChange={(event) =>
+                    setMyInitial([...event.target.value.trim()][0] ?? "")
+                  }
+                  placeholder="一个字或一个字母"
+                  className="w-20 text-center text-lg"
+                />
+              </div>
+              <Button type="submit" disabled={saving}>
+                保存
+              </Button>
+            </form>
 
-            <p className="mt-4 text-xs font-medium text-muted-foreground">颜色</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {COLOR_CHOICES.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => updateMe({ color })}
-                  className={cn(
-                    "flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                    me.color === color
-                      ? "border-primary text-foreground"
-                      : "border-border text-muted-foreground hover:border-primary",
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "size-4 rounded-full",
-                      memberToneClass[color] ?? "bg-muted",
-                    )}
-                  />
-                  {COLOR_LABELS[color]}
-                </button>
-              ))}
-            </div>
+            <p className="mt-4 text-xs font-medium text-muted-foreground">我的颜色</p>
+            <ColorRow member={me} onPick={updateColor} />
           </>
         ) : (
           <p className="mt-2 text-sm text-muted-foreground">先选好你是家里的哪一位。</p>
@@ -173,10 +196,70 @@ function SettingsPage() {
       </section>
 
       {isAdmin ? (
+        <section className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <h2 className="text-sm font-semibold text-foreground">家人的颜色</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            作为管理员，你可以调整每个人的头像颜色。
+          </p>
+          <ul className="mt-3 space-y-4">
+            {members.map((member) => (
+              <li key={member.id}>
+                <div className="flex items-center gap-3">
+                  <span
+                    className={cn(
+                      "flex size-9 items-center justify-center rounded-full text-sm font-semibold",
+                      memberToneClass[member.color] ?? "bg-muted text-foreground",
+                    )}
+                  >
+                    {memberBadge(member)}
+                  </span>
+                  <span className="text-sm font-medium text-foreground">
+                    {member.name}
+                  </span>
+                </div>
+                <ColorRow member={member} onPick={updateColor} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {isAdmin ? (
         <p className="mt-4 text-xs text-muted-foreground">
           你是这个家的管理员（第一个注册的人）。
         </p>
       ) : null}
     </AppShell>
+  );
+}
+
+function ColorRow({
+  member,
+  onPick,
+}: {
+  member: Member;
+  onPick: (member: Member, color: string) => void;
+}) {
+  return (
+    <div className="mt-2 flex flex-wrap gap-2">
+      {COLOR_CHOICES.map((color) => (
+        <button
+          key={color}
+          type="button"
+          onClick={() => onPick(member, color)}
+          className={cn(
+            "flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+            member.color === color
+              ? "border-primary text-foreground"
+              : "border-border text-muted-foreground hover:border-primary",
+          )}
+        >
+          <span
+            className={cn("size-4 rounded-full", memberToneClass[color] ?? "bg-muted")}
+          />
+          {COLOR_LABELS[color]}
+        </button>
+      ))}
+    </div>
   );
 }

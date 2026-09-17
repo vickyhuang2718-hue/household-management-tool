@@ -6,7 +6,7 @@ export type Member = {
   name: string;
   role: string;
   color: string;
-  emoji: string;
+  initial: string;
   sort_order: number;
 };
 
@@ -250,11 +250,12 @@ export function isAdminQuery(userId: string | null) {
   });
 }
 
-/** Icons people can pick for themselves. */
-export const EMOJI_CHOICES = [
-  "🌷", "🌿", "🍵", "🧸", "🐣", "🐻", "🐱", "🐶",
-  "🌻", "🍎", "🥕", "🍚", "⭐", "🌙", "🔥", "💐",
-] as const;
+/** The single character shown on a person's badge. */
+export function memberBadge(member: { initial?: string; name: string }) {
+  const custom = member.initial?.trim();
+  if (custom) return [...custom][0] ?? "";
+  return [...member.name.trim()][0] ?? "?";
+}
 
 export const COLOR_CHOICES = ["sage", "clay", "ochre", "plum"] as const;
 
