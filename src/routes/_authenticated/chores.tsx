@@ -135,6 +135,72 @@ function ChoreBoard() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const saveEdit = useMutation({
+    mutationFn: async ({ chore, values }: { chore: Chore; values: ChoreFields }) => {
+      const { error } = await supabase
+        .from("chores")
+        .update(values)
+        .eq("id", chore.id);
+      if (error) throw new Error(error.message);
+
+      const before: ChoreFields = {
+        title: chore.title,
+        notes: chore.notes,
+        member_id: chore.member_id,
+        frequency: chore.frequency,
+        due_date: chore.due_date,
+      };
+      const { error: logError } = await supabase.from("chore_edits").insert({
+        chore_id: chore.id,
+        edited_by: userId,
+        editor_name: myName,
+        before_data: before,
+        after_data: values,
+      });
+      if (logError) throw new Error(logError.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["chores"] });
+      queryClient.invalidateQueries({ queryKey: ["chore_edits"] });
+      setSelected(null);
+      toast.success("已保存修改，管理员会收到通知");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const undoEdit = useMutation({
+    mutationFn: async (edit: ChoreEdit) => {
+      const { error } = await supabase
+        .from("chores")
+        .update(edit.before_data)
+        .eq("id", edit.chore_id);
+      if (error) throw new Error(error.message);
+      const { error: markError } = await supabase
+        .from("chore_edits")
+        .update({ undone: true, dismissed: true })
+        .eq("id", edit.id);
+      if (markError) throw new Error(markError.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["chores"] });
+      queryClient.invalidateQueries({ queryKey: ["chore_edits"] });
+      toast.success("已撤销这次修改");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const dismissEdit = useMutation({
+    mutationFn: async (edit: ChoreEdit) => {
+      const { error } = await supabase
+        .from("chore_edits")
+        .update({ dismissed: true })
+        .eq("id", edit.id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["chore_edits"] }),
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const visible = filter
     ? chores.filter((c) =>
         filter === "unassigned" ? !c.member_id : c.member_id === filter,
