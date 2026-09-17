@@ -16,6 +16,7 @@ import {
   isAdminQuery,
   joinRequestsQuery,
   memberBadge,
+  memberRolesQuery,
   memberToneClass,
   membersQuery,
   profileQuery,
@@ -52,6 +53,10 @@ function SettingsPage() {
   });
 
   const me = members.find((member) => member.id === profile?.member_id) ?? null;
+  const { data: memberRoles = [] } = useQuery(memberRolesQuery);
+  const roleByMember = Object.fromEntries(
+    memberRoles.map((row) => [row.member_id, row.role]),
+  ) as Record<string, "admin" | "member" | undefined>;
   const [householdName, setHouseholdName] = useState("");
   const [myName, setMyName] = useState("");
   const [myInitial, setMyInitial] = useState("");
