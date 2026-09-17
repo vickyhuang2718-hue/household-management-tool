@@ -89,7 +89,7 @@ function AuthPage() {
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {mode === "signin"
-            ? "用邮箱和密码登录，家里的安排全都在这儿。"
+            ? "家里的安排全都在这儿。"
             : "注册后选择你是家里的哪一位，家务会优先显示你的。"}
         </p>
 
