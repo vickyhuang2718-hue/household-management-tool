@@ -73,6 +73,37 @@ function MealsPage() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [adding, setAdding] = useState<string | null>(null);
   const [editingDish, setEditingDish] = useState<string | null>(null);
+  const [guideTitle, setGuideTitle] = useState<string | null>(null);
+  const [guideText, setGuideText] = useState<string>("");
+  const cookingGuideFn = useServerFn(getCookingGuide);
+
+  const cookingGuide = useMutation({
+    mutationFn: async (values: {
+      title: string;
+      slot: string;
+      dishes: MealDish[];
+    }) => {
+      setGuideTitle(values.title);
+      setGuideText("");
+      const result = await cookingGuideFn({
+        data: {
+          slot: values.slot,
+          dishes: values.dishes.map((dish) => ({
+            name: dish.name,
+            babyTag: BABY_TAG_LABELS[dish.baby_tag],
+            notes: dish.notes ?? undefined,
+          })),
+        },
+      });
+      return result.guide;
+    },
+    onSuccess: (guide) => setGuideText(guide),
+    onError: (error: Error) => {
+      setGuideTitle(null);
+      toast.error(error.message);
+    },
+  });
+
 
   const weekStart = addDays(startOfWeek(new Date()), weekOffset * 7);
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
