@@ -16,6 +16,7 @@ import {
   isAdminQuery,
   joinRequestsQuery,
   memberBadge,
+  memberRolesQuery,
   memberToneClass,
   membersQuery,
   profileQuery,
@@ -52,6 +53,10 @@ function SettingsPage() {
   });
 
   const me = members.find((member) => member.id === profile?.member_id) ?? null;
+  const { data: memberRoles = [] } = useQuery(memberRolesQuery);
+  const roleByMember = Object.fromEntries(
+    memberRoles.map((row) => [row.member_id, row.role]),
+  ) as Record<string, "admin" | "member" | undefined>;
   const [householdName, setHouseholdName] = useState("");
   const [myName, setMyName] = useState("");
   const [myInitial, setMyInitial] = useState("");
@@ -256,40 +261,39 @@ function SettingsPage() {
         )}
       </section>
 
-      {isAdmin ? (
-        <section className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
-          <h2 className="text-sm font-semibold text-foreground">家人的颜色</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            作为管理员，你可以调整每个人的头像颜色。
-          </p>
-          <ul className="mt-3 space-y-4">
-            {members.map((member) => (
-              <li key={member.id}>
-                <div className="flex items-center gap-3">
-                  <span
-                    className={cn(
-                      "flex size-9 items-center justify-center rounded-full text-sm font-semibold",
-                      memberToneClass[member.color] ?? "bg-muted text-foreground",
-                    )}
-                  >
-                    {memberBadge(member)}
-                  </span>
-                  <span className="text-sm font-medium text-foreground">
-                    {member.name}
-                  </span>
-                </div>
-                <ColorRow member={member} onPick={updateColor} />
+      <section className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
+        <h2 className="text-sm font-semibold text-foreground">家里的成员</h2>
+        <ul className="mt-3 space-y-2">
+          {members.map((member) => {
+            const admin = roleByMember[member.id] === "admin";
+            return (
+              <li key={member.id} className="flex items-center gap-3">
+                <span
+                  className={cn(
+                    "flex size-9 items-center justify-center rounded-full text-sm font-semibold",
+                    memberToneClass[member.color] ?? "bg-muted text-foreground",
+                  )}
+                >
+                  {memberBadge(member)}
+                </span>
+                <span className="text-sm font-medium text-foreground">
+                  {member.name}
+                </span>
+                <span
+                  className={cn(
+                    "ml-auto rounded-full px-2.5 py-1 text-xs font-medium",
+                    admin
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {admin ? "管理员 Admin" : "成员 User"}
+                </span>
               </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      {isAdmin ? (
-        <p className="mt-4 text-xs text-muted-foreground">
-          你是这个家的管理员（第一个注册的人）。
-        </p>
-      ) : null}
+            );
+          })}
+        </ul>
+      </section>
 
       <Button
         variant="outline"

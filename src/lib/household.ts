@@ -260,9 +260,9 @@ export const memberToneClass: Record<string, string> = {
   sage: "bg-sage text-sage-foreground",
   clay: "bg-clay text-clay-foreground",
   ochre: "bg-ochre text-ochre-foreground",
-  plum: "bg-plum text-plum-foreground",
+  teal: "bg-teal text-teal-foreground",
   denim: "bg-denim text-denim-foreground",
-  rose: "bg-rose text-rose-foreground",
+  cocoa: "bg-cocoa text-cocoa-foreground",
   olive: "bg-olive text-olive-foreground",
   stone: "bg-stone text-stone-foreground",
 };
@@ -329,6 +329,15 @@ export const joinRequestsQuery = queryOptions({
   },
 });
 
+export const memberRolesQuery = queryOptions({
+  queryKey: ["member_roles"],
+  queryFn: async () => {
+    const { data, error } = await supabase.rpc("household_member_roles");
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { member_id: string; role: "admin" | "member" }[];
+  },
+});
+
 export function isAdminQuery(userId: string | null) {
   return queryOptions({
     queryKey: ["is_admin", userId],
@@ -357,9 +366,9 @@ export const COLOR_CHOICES = [
   "sage",
   "clay",
   "ochre",
-  "plum",
+  "teal",
   "denim",
-  "rose",
+  "cocoa",
   "olive",
   "stone",
 ] as const;
@@ -368,9 +377,9 @@ export const COLOR_LABELS: Record<string, string> = {
   sage: "青绿 Sage",
   clay: "陶土 Clay",
   ochre: "赭黄 Ochre",
-  plum: "梅紫 Plum",
+  teal: "青蓝 Teal",
   denim: "靛蓝 Denim",
-  rose: "玫瑰 Rose",
+  cocoa: "可可 Cocoa",
   olive: "橄榄 Olive",
   stone: "石灰 Stone",
 };
