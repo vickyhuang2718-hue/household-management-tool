@@ -23,3 +23,5 @@
 - [x] Shopping: upcoming section edit name + postpone 1-3 days
 - [x] Verify shopping page UI (Playwright)
 - [x] Shopping: remove "Running low" suggestions section
+- [x] Shopping: main-list items click-to-edit name + postpone 1-3 days
+- [x] Shopping: remove page subtitle text
