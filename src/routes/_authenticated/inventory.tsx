@@ -421,20 +421,26 @@ function ItemForm({
   );
 }
 
-function NoteEditor({
+function ItemEditor({
   item,
   onSave,
   onCancel,
   pending,
 }: {
   item: InventoryItem;
-  onSave: (note: string) => void;
+  onSave: (name: string, note: string) => void;
   onCancel: () => void;
   pending: boolean;
 }) {
+  const [name, setName] = useState(item.name);
   const [note, setNote] = useState(item.note ?? "");
   return (
     <div className="mt-2 space-y-2">
+      <Input
+        value={name}
+        onChange={(event) => setName(event.target.value)}
+        placeholder="名称"
+      />
       <Textarea
         value={note}
         onChange={(event) => setNote(event.target.value)}
@@ -442,8 +448,8 @@ function NoteEditor({
         placeholder="写点备注，比如牌子、放在哪、什么时候买的"
       />
       <div className="flex gap-2">
-        <Button size="sm" disabled={pending} onClick={() => onSave(note)}>
-          保存备注
+        <Button size="sm" disabled={pending} onClick={() => onSave(name, note)}>
+          保存
         </Button>
         <Button size="sm" variant="outline" onClick={onCancel}>
           取消
