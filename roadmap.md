@@ -25,3 +25,4 @@
 - [x] Shopping: remove "Running low" suggestions section
 - [x] Shopping: main-list items click-to-edit name + postpone 1-3 days
 - [x] Shopping: remove page subtitle text
+- [x] Sign-up weak-password (HIBP) block: added Chinese password hint under password field in signup mode; protection left ON
