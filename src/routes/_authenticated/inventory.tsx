@@ -339,17 +339,17 @@ function InventoryPage() {
                                 ))}
                               </SelectContent>
                             </Select>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setEditing(editing === item.id ? null : item.id)
-                              }
-                              aria-label="编辑"
-                              className="shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted"
-                            >
-                              <Pencil className="size-3.5" />
-                            </button>
                           </p>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setEditing(editing === item.id ? null : item.id)
+                            }
+                            aria-label="编辑"
+                            className="ml-auto shrink-0 self-start rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted"
+                          >
+                            <Pencil className="size-3.5" />
+                          </button>
                         </div>
 
                         {item.note && editing !== item.id ? (
