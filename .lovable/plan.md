@@ -7,27 +7,33 @@ password is checked against the Have I Been Pwned breach database; common or
 previously-leaked passwords are rejected with "Password is known to be
 weak...". The new user hit this because their password is too common.
 
-## Options
+## Changes
 
-**Option A — Ask the user to pick a stronger password (recommended, no code change)**
-Have them choose a longer, less common password (e.g. a short phrase with
-mixed words and numbers). Protection stays on for everyone.
+### 1. Add password guidance on the sign-up form (`src/routes/auth.tsx`)
 
-**Option B — Turn off leaked-password protection**
-- Call `configure_auth` with `password_hibp_enabled: false` (leaving
-  `disable_signup`, `external_anonymous_users_enabled`, and
-  `auto_confirm_email` at their current values: signups enabled, anonymous
-  users off, email confirmation on).
-- The new user can then sign up with any password meeting the 6-character
-  minimum.
+Small hint text under the password field, shown in sign-up mode, in
+Simplified Chinese to match the app:
+
+> 密码提示：至少 6 个字符。请避免常见密码（如 123456、password、生日或手机号）——这些密码已被泄露，会被系统拒绝。建议用一句只有你知道的短句，混合大小写字母和数字，例如「WoJia2SuiBao2026!」。
+
+English meaning: at least 6 characters; avoid common passwords (123456,
+password, birthdays, phone numbers) — they're already leaked and will be
+rejected; use a short phrase only you know, mixing uppercase/lowercase
+letters and numbers.
+
+### 2. Keep leaked-password protection ON (recommended)
+
+It stays enabled so weak passwords keep being rejected. The hint text should
+prevent repeat failures.
+
+**Alternative (only if you'd rather not block anyone):** turn the protection
+off via `configure_auth` with `password_hibp_enabled: false`. Say the word
+and I'll switch to this instead — but the hint + stronger password is the
+safer default.
 
 ## Technical details
 
-- Single tool call: `supabase--configure_auth` (idempotent auth settings
-  update). No code or migration changes.
-- Verify by confirming the setting took effect; the user retries sign-up.
-
-## Recommendation
-
-Try Option A first (stronger password) — it's the safer default. If the user
-still can't get in or you'd rather not block anyone, proceed with Option B.
+- UI: one `<p className="text-xs text-muted-foreground">` under the password
+  `Input` in `src/routes/auth.tsx`, rendered when `mode === "signup"`.
+- Optional settings change uses `supabase--configure_auth`; no code or
+  migration changes for the recommended path.
