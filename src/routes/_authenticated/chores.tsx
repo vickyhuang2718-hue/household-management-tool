@@ -406,6 +406,27 @@ function ChoreBoard() {
         saving={saveEdit.isPending}
       />
 
+      <Dialog
+        open={repeatFor !== null}
+        onOpenChange={(open) => {
+          if (!open) setRepeatFor(null);
+        }}
+      >
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
+          {repeatFor ? (
+            <RepeatChoreBody
+              chore={repeatFor}
+              members={members}
+              todayKey={todayKey}
+              pending={createRepeat.isPending}
+              onCreate={(values) => createRepeat.mutate(values)}
+              onSkip={() => setRepeatFor(null)}
+            />
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
+
       {showForm ? (
         <ChoreForm
           members={members}
