@@ -41,6 +41,7 @@ export const Route = createFileRoute("/_authenticated/shopping")({
 function ShoppingPage() {
   const queryClient = useQueryClient();
   const { data: list = [], isLoading } = useQuery(shoppingQuery);
+  const { data: upcoming = [] } = useQuery(upcomingShoppingQuery);
   const { data: inventory = [] } = useQuery(inventoryQuery);
   const { data: meals = [] } = useQuery(mealsQuery);
   const { data: ingredients = [] } = useQuery(mealIngredientsQuery);
