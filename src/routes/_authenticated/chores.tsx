@@ -2,6 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Check, Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 import { AppShell, useCurrentUserId } from "@/components/household/AppShell";
@@ -56,6 +63,7 @@ function ChoreBoard() {
   const { data: chores = [], isLoading } = useQuery(choresQuery);
   const [filter, setFilter] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [selected, setSelected] = useState<Chore | null>(null);
   const userId = useCurrentUserId();
   const { data: profile } = useQuery(profileQuery(userId));
   const myMemberId = profile?.member_id ?? null;
@@ -191,21 +199,36 @@ function ChoreBoard() {
             chores={overdue}
             members={members}
             onComplete={(chore) => complete.mutate(chore)}
+            onOpen={setSelected}
           />
           <ChoreGroup
             heading="今天"
             chores={today}
             members={members}
             onComplete={(chore) => complete.mutate(chore)}
+            onOpen={setSelected}
           />
           <ChoreGroup
             heading="接下来"
             chores={upcoming}
             members={members}
             onComplete={(chore) => complete.mutate(chore)}
+            onOpen={setSelected}
           />
         </div>
       )}
+
+      <ChoreDetailDialog
+        chore={selected}
+        members={members}
+        todayKey={todayKey}
+        onClose={() => setSelected(null)}
+        onComplete={(chore) => {
+          setSelected(null);
+          complete.mutate(chore);
+        }}
+        completing={complete.isPending}
+      />
 
       {showForm ? (
         <ChoreForm
@@ -228,12 +251,14 @@ function ChoreGroup({
   chores,
   members,
   onComplete,
+  onOpen,
   tone,
 }: {
   heading: string;
   chores: Chore[];
   members: { id: string; name: string; color: string; initial: string }[];
   onComplete: (chore: Chore) => void;
+  onOpen: (chore: Chore) => void;
   tone?: "destructive";
 }) {
   if (chores.length === 0) return null;
@@ -267,9 +292,13 @@ function ChoreGroup({
               >
                 <Check className="size-5" />
               </button>
-              <div className="min-w-0 flex-1">
+              <button
+                type="button"
+                onClick={() => onOpen(chore)}
+                className="min-w-0 flex-1 text-left"
+              >
                 <p className="truncate font-medium text-foreground">{chore.title}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="truncate text-xs text-muted-foreground">
                   {member?.name ?? "未分配"} ·{" "}
                   {parseDateKey(chore.due_date).toLocaleDateString("zh-CN", {
                     weekday: "short",
@@ -278,10 +307,10 @@ function ChoreGroup({
                   })}
                   {chore.notes ? ` · ${chore.notes}` : ""}
                 </p>
-              </div>
+              </button>
               <span
                 className={cn(
-                  "flex size-8 items-center justify-center rounded-full text-[11px] font-semibold",
+                  "flex size-8 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
                   memberToneClass[member?.color ?? ""] ?? "bg-muted text-foreground",
                 )}
               >
@@ -292,6 +321,104 @@ function ChoreGroup({
         })}
       </ul>
     </section>
+  );
+}
+
+function ChoreDetailDialog({
+  chore,
+  members,
+  todayKey,
+  onClose,
+  onComplete,
+  completing,
+}: {
+  chore: Chore | null;
+  members: { id: string; name: string; color: string; initial: string }[];
+  todayKey: string;
+  onClose: () => void;
+  onComplete: (chore: Chore) => void;
+  completing: boolean;
+}) {
+  const member = members.find((m) => m.id === chore?.member_id);
+  const next = chore ? repeatAfter(todayKey, chore.frequency) : null;
+
+  return (
+    <Dialog open={chore !== null} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-sm rounded-2xl">
+        {chore ? (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-left text-xl">{chore.title}</DialogTitle>
+              <DialogDescription className="sr-only">家务详情</DialogDescription>
+            </DialogHeader>
+            <dl className="space-y-3 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <dt className="text-muted-foreground">负责</dt>
+                <dd className="flex items-center gap-2">
+                  {member ? (
+                    <>
+                      <span
+                        className={cn(
+                          "flex size-7 items-center justify-center rounded-full text-[11px] font-semibold",
+                          memberToneClass[member.color] ?? "bg-muted text-foreground",
+                        )}
+                      >
+                        {memberBadge(member)}
+                      </span>
+                      {member.name}
+                    </>
+                  ) : (
+                    "待认领"
+                  )}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <dt className="text-muted-foreground">到期日</dt>
+                <dd>
+                  {parseDateKey(chore.due_date).toLocaleDateString("zh-CN", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                  })}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <dt className="text-muted-foreground">重复</dt>
+                <dd>{FREQUENCY_LABELS[chore.frequency] ?? chore.frequency}</dd>
+              </div>
+              <div className="border-t border-border pt-3">
+                <dt className="text-muted-foreground">备注</dt>
+                <dd className="mt-1 whitespace-pre-wrap">
+                  {chore.notes ? chore.notes : "没有备注"}
+                </dd>
+              </div>
+              {next && (
+                <p className="text-xs text-muted-foreground">
+                  勾掉后，下一次会安排在{" "}
+                  {parseDateKey(next).toLocaleDateString("zh-CN", {
+                    day: "numeric",
+                    month: "long",
+                  })}{" "}
+                  （待认领）。
+                </p>
+              )}
+            </dl>
+            <div className="flex gap-2">
+              <Button
+                className="flex-1"
+                disabled={completing}
+                onClick={() => onComplete(chore)}
+              >
+                <Check className="size-4" /> 标记为完成
+              </Button>
+              <Button type="button" variant="outline" onClick={onClose}>
+                关闭
+              </Button>
+            </div>
+          </>
+        ) : null}
+      </DialogContent>
+    </Dialog>
   );
 }
 
