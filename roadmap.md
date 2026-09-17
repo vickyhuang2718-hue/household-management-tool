@@ -17,3 +17,6 @@
 - [x] Settings: admin sees an editable household name field (and the join key)
 - [x] Settings: more avatar colour choices
 - [x] Chores: member filter chips on a single line (icon-only badges, scroll bar below the line)
+
+- Settings: replace admin note with household member list + user/admin badge
+- Colours: plum/rose -> teal/cocoa; remove admin editing of others colours
