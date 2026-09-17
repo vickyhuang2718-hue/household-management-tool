@@ -320,6 +320,7 @@ function MealsPage() {
                                   weekday: "long",
                                 })} · ${SLOT_LABELS[slot] ?? slot}`,
                                 slot: SLOT_LABELS[slot] ?? slot,
+                                meal,
                                 dishes: slotDishes,
                               })
                             }
