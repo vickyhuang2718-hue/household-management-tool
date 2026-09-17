@@ -97,22 +97,36 @@ function ChoreBoard() {
         .eq("id", chore.id);
       if (error) throw new Error(error.message);
 
+      return chore;
+    },
+    onSuccess: (chore) => {
+      queryClient.invalidateQueries({ queryKey: ["chores"] });
       const next = repeatAfter(todayKey, chore.frequency);
       if (next) {
-        const { error: repeatError } = await supabase.from("chores").insert({
-          title: chore.title,
-          notes: chore.notes,
-          frequency: chore.frequency,
-          due_date: next,
-          member_id: null,
-        });
-        if (repeatError) throw new Error(repeatError.message);
+        setRepeatFor(chore);
+        toast.success("完成啦，要不要安排下一次？");
+      } else {
+        toast.success("完成，已从板上移除");
       }
-      return next;
     },
-    onSuccess: (next) => {
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const createRepeat = useMutation({
+    mutationFn: async (values: ChoreFields) => {
+      const { error } = await supabase.from("chores").insert({
+        title: values.title,
+        notes: values.notes,
+        frequency: values.frequency,
+        due_date: values.due_date,
+        member_id: values.member_id,
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["chores"] });
-      toast.success(next ? "完成啦，已新建下一次（待认领）" : "完成，已从板上移除");
+      setRepeatFor(null);
+      toast.success("已安排下一次");
     },
     onError: (error: Error) => toast.error(error.message),
   });
