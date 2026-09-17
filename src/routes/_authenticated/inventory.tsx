@@ -1,13 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Plus, TriangleAlert } from "lucide-react";
+import { Plus, StickyNote, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 
-import { AppShell } from "@/components/household/AppShell";
+import { AppShell, useCurrentUserId } from "@/components/household/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -25,6 +26,8 @@ import {
   type InventoryItem,
   type StockStatus,
   inventoryQuery,
+  membersQuery,
+  profileQuery,
 } from "@/lib/household";
 
 import { cn } from "@/lib/utils";
