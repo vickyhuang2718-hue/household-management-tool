@@ -14,7 +14,250 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chore_completions: {
+        Row: {
+          chore_id: string
+          completed_on: string
+          created_at: string
+          id: string
+          member_id: string | null
+        }
+        Insert: {
+          chore_id: string
+          completed_on?: string
+          created_at?: string
+          id?: string
+          member_id?: string | null
+        }
+        Update: {
+          chore_id?: string
+          completed_on?: string
+          created_at?: string
+          id?: string
+          member_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chore_completions_chore_id_fkey"
+            columns: ["chore_id"]
+            isOneToOne: false
+            referencedRelation: "chores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chore_completions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chores: {
+        Row: {
+          archived: boolean
+          created_at: string
+          due_date: string
+          frequency: string
+          id: string
+          member_id: string | null
+          notes: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          archived?: boolean
+          created_at?: string
+          due_date?: string
+          frequency?: string
+          id?: string
+          member_id?: string | null
+          notes?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          archived?: boolean
+          created_at?: string
+          due_date?: string
+          frequency?: string
+          id?: string
+          member_id?: string | null
+          notes?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chores_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_items: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          low_threshold: number
+          name: string
+          quantity: number
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          low_threshold?: number
+          name: string
+          quantity?: number
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          low_threshold?: number
+          name?: string
+          quantity?: number
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      meal_ingredients: {
+        Row: {
+          created_at: string
+          id: string
+          meal_id: string
+          name: string
+          quantity: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meal_id: string
+          name: string
+          quantity?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meal_id?: string
+          name?: string
+          quantity?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_ingredients_meal_id_fkey"
+            columns: ["meal_id"]
+            isOneToOne: false
+            referencedRelation: "meals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meals: {
+        Row: {
+          cooked: boolean
+          created_at: string
+          id: string
+          meal_date: string
+          notes: string | null
+          slot: string
+          title: string
+          toddler_note: string
+          updated_at: string
+        }
+        Insert: {
+          cooked?: boolean
+          created_at?: string
+          id?: string
+          meal_date: string
+          notes?: string | null
+          slot: string
+          title: string
+          toddler_note?: string
+          updated_at?: string
+        }
+        Update: {
+          cooked?: boolean
+          created_at?: string
+          id?: string
+          meal_date?: string
+          notes?: string | null
+          slot?: string
+          title?: string
+          toddler_note?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      members: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          role: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          role?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          role?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      shopping_items: {
+        Row: {
+          category: string
+          checked: boolean
+          created_at: string
+          id: string
+          name: string
+          quantity: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          checked?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          quantity?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          checked?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          quantity?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
