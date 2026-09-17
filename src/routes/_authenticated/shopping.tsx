@@ -166,7 +166,6 @@ function ShoppingPage() {
   return (
     <AppShell
       title="采购清单 Shopping"
-      subtitle="想到什么就添加，建议随手一点即可加入 · Add what you need"
     >
       <form
         className="flex gap-2"
