@@ -40,6 +40,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
 
 function SettingsPage() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const userId = useCurrentUserId();
   const { data: profile } = useQuery(profileQuery(userId));
   const { data: members = [] } = useQuery(membersQuery);
