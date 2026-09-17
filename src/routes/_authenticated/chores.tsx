@@ -371,8 +371,13 @@ function ChoreBoard() {
           pending={addChore.isPending}
         />
       ) : (
-        <Button className="mt-8 w-full" size="lg" onClick={() => setShowForm(true)}>
-          <Plus className="size-4" /> 添加家务
+        <Button
+          className="fixed right-5 bottom-20 z-30 size-14 rounded-full shadow-lg"
+          size="icon"
+          aria-label="添加家务"
+          onClick={() => setShowForm(true)}
+        >
+          <Plus className="size-6" />
         </Button>
       )}
     </AppShell>
