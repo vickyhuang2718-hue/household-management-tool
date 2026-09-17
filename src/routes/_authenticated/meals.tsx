@@ -481,16 +481,26 @@ function DishForm({
   onCancel,
   onDelete,
   pending,
+  library = [],
 }: {
   initial: DishDraft;
   onSave: (draft: DishDraft) => void;
   onCancel: () => void;
   onDelete?: () => void;
   pending: boolean;
+  library?: DishDraft[];
 }) {
   const [name, setName] = useState(initial.name);
   const [notes, setNotes] = useState(initial.notes);
   const [babyTag, setBabyTag] = useState<BabyTag>(initial.baby_tag);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const query = name.trim().toLowerCase();
+  const suggestions = (
+    query
+      ? library.filter((dish) => dish.name.toLowerCase().includes(query))
+      : library
+  ).slice(0, 6);
 
   return (
     <form
