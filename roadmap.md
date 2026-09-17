@@ -21,5 +21,5 @@
 - Settings: replace admin note with household member list + user/admin badge
 - Colours: plum/rose -> teal/cocoa; remove admin editing of others colours
 - [x] Shopping: upcoming section edit name + postpone 1-3 days
-- [ ] Verify shopping page UI (Playwright)
+- [x] Verify shopping page UI (Playwright)
 - [x] Shopping: remove "Running low" suggestions section
