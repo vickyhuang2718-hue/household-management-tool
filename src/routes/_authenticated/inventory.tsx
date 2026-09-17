@@ -215,7 +215,35 @@ function InventoryPage() {
         .eq("id", item.id);
       if (error) throw new Error(error.message);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["inventory_items"] }),
+    onSuccess: (_data, { item, status }) => {
+      queryClient.invalidateQueries({ queryKey: ["inventory_items"] });
+      if (status !== "enough") setShopPrompt(item);
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const [shopPrompt, setShopPrompt] = useState<InventoryItem | null>(null);
+  const [shopDays, setShopDays] = useState("1");
+
+  const addToShopping = useMutation({
+    mutationFn: async ({ item, days }: { item: InventoryItem; days: number }) => {
+      const row: { name: string; category: string; buy_after?: string } = {
+        name: item.name,
+        category: item.category,
+      };
+      if (days > 0) {
+        const date = new Date();
+        date.setDate(date.getDate() + days);
+        row.buy_after = toDateKey(date);
+      }
+      const { error } = await supabase.from("shopping_items").insert(row);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_data, { days }) => {
+      queryClient.invalidateQueries({ queryKey: ["shopping_items"] });
+      setShopPrompt(null);
+      toast.success(days > 0 ? `已加入采购清单，${days} 天后出现` : "已加入采购清单");
+    },
     onError: (error: Error) => toast.error(error.message),
   });
 
