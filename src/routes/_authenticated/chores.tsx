@@ -349,6 +349,7 @@ function ChoreForm({
               <SelectValue placeholder="选一个人" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="unassigned">待认领</SelectItem>
               {members.map((member) => (
                 <SelectItem key={member.id} value={member.id}>
                   {member.name}
