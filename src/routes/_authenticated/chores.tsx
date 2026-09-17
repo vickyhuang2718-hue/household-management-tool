@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Check, Plus } from "lucide-react";
+import { Check, Pencil, Plus, Undo2, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -22,12 +22,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import {
   FREQUENCIES,
   FREQUENCY_LABELS,
   type Chore,
+  type ChoreEdit,
+  type ChoreFields,
+  choreEditsQuery,
   choresQuery,
+  isAdminQuery,
   memberBadge,
   memberToneClass,
   membersQuery,
@@ -67,6 +72,9 @@ function ChoreBoard() {
   const userId = useCurrentUserId();
   const { data: profile } = useQuery(profileQuery(userId));
   const myMemberId = profile?.member_id ?? null;
+  const { data: isAdmin = false } = useQuery(isAdminQuery(userId));
+  const { data: edits = [] } = useQuery(choreEditsQuery);
+  const myName = members.find((m) => m.id === myMemberId)?.name ?? "某位家人";
 
   useEffect(() => {
     if (myMemberId) setFilter(myMemberId);
@@ -127,6 +135,72 @@ function ChoreBoard() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const saveEdit = useMutation({
+    mutationFn: async ({ chore, values }: { chore: Chore; values: ChoreFields }) => {
+      const { error } = await supabase
+        .from("chores")
+        .update(values)
+        .eq("id", chore.id);
+      if (error) throw new Error(error.message);
+
+      const before: ChoreFields = {
+        title: chore.title,
+        notes: chore.notes,
+        member_id: chore.member_id,
+        frequency: chore.frequency,
+        due_date: chore.due_date,
+      };
+      const { error: logError } = await supabase.from("chore_edits").insert({
+        chore_id: chore.id,
+        edited_by: userId,
+        editor_name: myName,
+        before_data: before,
+        after_data: values,
+      });
+      if (logError) throw new Error(logError.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["chores"] });
+      queryClient.invalidateQueries({ queryKey: ["chore_edits"] });
+      setSelected(null);
+      toast.success("已保存修改，管理员会收到通知");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const undoEdit = useMutation({
+    mutationFn: async (edit: ChoreEdit) => {
+      const { error } = await supabase
+        .from("chores")
+        .update(edit.before_data)
+        .eq("id", edit.chore_id);
+      if (error) throw new Error(error.message);
+      const { error: markError } = await supabase
+        .from("chore_edits")
+        .update({ undone: true, dismissed: true })
+        .eq("id", edit.id);
+      if (markError) throw new Error(markError.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["chores"] });
+      queryClient.invalidateQueries({ queryKey: ["chore_edits"] });
+      toast.success("已撤销这次修改");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const dismissEdit = useMutation({
+    mutationFn: async (edit: ChoreEdit) => {
+      const { error } = await supabase
+        .from("chore_edits")
+        .update({ dismissed: true })
+        .eq("id", edit.id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["chore_edits"] }),
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const visible = filter
     ? chores.filter((c) =>
         filter === "unassigned" ? !c.member_id : c.member_id === filter,
@@ -145,6 +219,45 @@ function ChoreBoard() {
         month: "long",
       })}
     >
+      {isAdmin && edits.length > 0 && (
+        <section className="mb-5 space-y-2 rounded-xl border border-border bg-card p-4">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            家务改动通知
+          </h2>
+          {edits.map((edit) => (
+            <div
+              key={edit.id}
+              className="flex items-start gap-2 rounded-lg bg-muted/50 p-3 text-sm"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="font-medium">
+                  {edit.editor_name} 修改了「{edit.before_data.title}」
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {describeEdit(edit, members)}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => undoEdit.mutate(edit)}
+                disabled={undoEdit.isPending}
+              >
+                <Undo2 className="size-4" /> 撤销
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                aria-label="忽略这条通知"
+                onClick={() => dismissEdit.mutate(edit)}
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
+          ))}
+        </section>
+      )}
+
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
@@ -228,6 +341,8 @@ function ChoreBoard() {
           complete.mutate(chore);
         }}
         completing={complete.isPending}
+        onSave={(chore, values) => saveEdit.mutate({ chore, values })}
+        saving={saveEdit.isPending}
       />
 
       {showForm ? (
@@ -324,6 +439,39 @@ function ChoreGroup({
   );
 }
 
+const FIELD_LABELS: Record<keyof ChoreFields, string> = {
+  title: "名称",
+  member_id: "负责人",
+  notes: "备注",
+  frequency: "重复",
+  due_date: "到期日",
+};
+
+function describeEdit(edit: ChoreEdit, members: { id: string; name: string }[]) {
+  const show = (key: keyof ChoreFields, value: ChoreFields[keyof ChoreFields]) => {
+    if (!value) return key === "member_id" ? "待认领" : "空";
+    if (key === "member_id")
+      return members.find((m) => m.id === value)?.name ?? "某位家人";
+    if (key === "frequency") return FREQUENCY_LABELS[value as string] ?? String(value);
+    if (key === "due_date")
+      return parseDateKey(value as string).toLocaleDateString("zh-CN", {
+        month: "long",
+        day: "numeric",
+      });
+    return String(value);
+  };
+
+  const keys = Object.keys(FIELD_LABELS) as (keyof ChoreFields)[];
+  const changed = keys.filter((key) => edit.before_data[key] !== edit.after_data[key]);
+  if (changed.length === 0) return "没有实质改动";
+  return changed
+    .map(
+      (key) =>
+        `${FIELD_LABELS[key]}：${show(key, edit.before_data[key])} → ${show(key, edit.after_data[key])}`,
+    )
+    .join("；");
+}
+
 function ChoreDetailDialog({
   chore,
   members,
@@ -331,6 +479,8 @@ function ChoreDetailDialog({
   onClose,
   onComplete,
   completing,
+  onSave,
+  saving,
 }: {
   chore: Chore | null;
   members: { id: string; name: string; color: string; initial: string }[];
@@ -338,87 +488,224 @@ function ChoreDetailDialog({
   onClose: () => void;
   onComplete: (chore: Chore) => void;
   completing: boolean;
+  onSave: (chore: Chore, values: ChoreFields) => void;
+  saving: boolean;
 }) {
-  const member = members.find((m) => m.id === chore?.member_id);
-  const next = chore ? repeatAfter(todayKey, chore.frequency) : null;
-
   return (
     <Dialog open={chore !== null} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-sm rounded-2xl">
         {chore ? (
-          <>
-            <DialogHeader>
-              <DialogTitle className="text-left text-xl">{chore.title}</DialogTitle>
-              <DialogDescription className="sr-only">家务详情</DialogDescription>
-            </DialogHeader>
-            <dl className="space-y-3 text-sm">
-              <div className="flex items-center justify-between gap-3">
-                <dt className="text-muted-foreground">负责</dt>
-                <dd className="flex items-center gap-2">
-                  {member ? (
-                    <>
-                      <span
-                        className={cn(
-                          "flex size-7 items-center justify-center rounded-full text-[11px] font-semibold",
-                          memberToneClass[member.color] ?? "bg-muted text-foreground",
-                        )}
-                      >
-                        {memberBadge(member)}
-                      </span>
-                      {member.name}
-                    </>
-                  ) : (
-                    "待认领"
-                  )}
-                </dd>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <dt className="text-muted-foreground">到期日</dt>
-                <dd>
-                  {parseDateKey(chore.due_date).toLocaleDateString("zh-CN", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                  })}
-                </dd>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <dt className="text-muted-foreground">重复</dt>
-                <dd>{FREQUENCY_LABELS[chore.frequency] ?? chore.frequency}</dd>
-              </div>
-              <div className="border-t border-border pt-3">
-                <dt className="text-muted-foreground">备注</dt>
-                <dd className="mt-1 whitespace-pre-wrap">
-                  {chore.notes ? chore.notes : "没有备注"}
-                </dd>
-              </div>
-              {next && (
-                <p className="text-xs text-muted-foreground">
-                  勾掉后，下一次会安排在{" "}
-                  {parseDateKey(next).toLocaleDateString("zh-CN", {
-                    day: "numeric",
-                    month: "long",
-                  })}{" "}
-                  （待认领）。
-                </p>
-              )}
-            </dl>
-            <div className="flex gap-2">
-              <Button
-                className="flex-1"
-                disabled={completing}
-                onClick={() => onComplete(chore)}
-              >
-                <Check className="size-4" /> 标记为完成
-              </Button>
-              <Button type="button" variant="outline" onClick={onClose}>
-                关闭
-              </Button>
-            </div>
-          </>
+          <ChoreDetailBody
+            key={chore.id}
+            chore={chore}
+            members={members}
+            todayKey={todayKey}
+            onClose={onClose}
+            onComplete={onComplete}
+            completing={completing}
+            onSave={onSave}
+            saving={saving}
+          />
         ) : null}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ChoreDetailBody({
+  chore,
+  members,
+  todayKey,
+  onClose,
+  onComplete,
+  completing,
+  onSave,
+  saving,
+}: {
+  chore: Chore;
+  members: { id: string; name: string; color: string; initial: string }[];
+  todayKey: string;
+  onClose: () => void;
+  onComplete: (chore: Chore) => void;
+  completing: boolean;
+  onSave: (chore: Chore, values: ChoreFields) => void;
+  saving: boolean;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState(chore.title);
+  const [memberId, setMemberId] = useState(chore.member_id ?? "unassigned");
+  const [frequency, setFrequency] = useState(chore.frequency);
+  const [dueDate, setDueDate] = useState(chore.due_date);
+  const [notes, setNotes] = useState(chore.notes ?? "");
+
+  const member = members.find((m) => m.id === chore.member_id);
+  const next = repeatAfter(todayKey, chore.frequency);
+
+  if (editing) {
+    return (
+      <>
+        <DialogHeader>
+          <DialogTitle className="text-left text-xl">修改家务</DialogTitle>
+          <DialogDescription className="sr-only">修改家务详情</DialogDescription>
+        </DialogHeader>
+        <form
+          className="space-y-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!title.trim()) return;
+            onSave(chore, {
+              title: title.trim(),
+              member_id: memberId === "unassigned" ? null : memberId,
+              frequency,
+              due_date: dueDate,
+              notes: notes.trim() ? notes.trim() : null,
+            });
+          }}
+        >
+          <div className="space-y-2">
+            <Label htmlFor="edit-title">名称</Label>
+            <Input
+              id="edit-title"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              required
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>谁来做</Label>
+              <Select value={memberId} onValueChange={setMemberId}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unassigned">待认领</SelectItem>
+                  {members.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>多久一次</Label>
+              <Select value={frequency} onValueChange={setFrequency}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {FREQUENCIES.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {FREQUENCY_LABELS[option] ?? option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-due">到期日</Label>
+            <Input
+              id="edit-due"
+              type="date"
+              value={dueDate}
+              onChange={(event) => setDueDate(event.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-notes">备注</Label>
+            <Textarea
+              id="edit-notes"
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+              placeholder="可写可不写"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button type="submit" className="flex-1" disabled={saving}>
+              保存
+            </Button>
+            <Button type="button" variant="outline" onClick={() => setEditing(false)}>
+              取消
+            </Button>
+          </div>
+        </form>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle className="text-left text-xl">{chore.title}</DialogTitle>
+        <DialogDescription className="sr-only">家务详情</DialogDescription>
+      </DialogHeader>
+      <dl className="space-y-3 text-sm">
+        <div className="flex items-center justify-between gap-3">
+          <dt className="text-muted-foreground">负责</dt>
+          <dd className="flex items-center gap-2">
+            {member ? (
+              <>
+                <span
+                  className={cn(
+                    "flex size-7 items-center justify-center rounded-full text-[11px] font-semibold",
+                    memberToneClass[member.color] ?? "bg-muted text-foreground",
+                  )}
+                >
+                  {memberBadge(member)}
+                </span>
+                {member.name}
+              </>
+            ) : (
+              "待认领"
+            )}
+          </dd>
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <dt className="text-muted-foreground">到期日</dt>
+          <dd>
+            {parseDateKey(chore.due_date).toLocaleDateString("zh-CN", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+            })}
+          </dd>
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <dt className="text-muted-foreground">重复</dt>
+          <dd>{FREQUENCY_LABELS[chore.frequency] ?? chore.frequency}</dd>
+        </div>
+        <div className="border-t border-border pt-3">
+          <dt className="text-muted-foreground">备注</dt>
+          <dd className="mt-1 whitespace-pre-wrap">
+            {chore.notes ? chore.notes : "没有备注"}
+          </dd>
+        </div>
+        {next && (
+          <p className="text-xs text-muted-foreground">
+            勾掉后，下一次会安排在{" "}
+            {parseDateKey(next).toLocaleDateString("zh-CN", {
+              day: "numeric",
+              month: "long",
+            })}{" "}
+            （待认领）。
+          </p>
+        )}
+      </dl>
+      <div className="flex gap-2">
+        <Button className="flex-1" disabled={completing} onClick={() => onComplete(chore)}>
+          <Check className="size-4" /> 标记为完成
+        </Button>
+        <Button type="button" variant="outline" onClick={() => setEditing(true)}>
+          <Pencil className="size-4" /> 修改
+        </Button>
+        <Button type="button" variant="ghost" onClick={onClose}>
+          关闭
+        </Button>
+      </div>
+    </>
   );
 }
 

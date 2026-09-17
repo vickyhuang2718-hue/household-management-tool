@@ -59,6 +59,25 @@ export type ShoppingItem = {
   checked: boolean;
 };
 
+export type ChoreFields = {
+  title: string;
+  notes: string | null;
+  member_id: string | null;
+  frequency: string;
+  due_date: string;
+};
+
+export type ChoreEdit = {
+  id: string;
+  chore_id: string;
+  editor_name: string;
+  before_data: ChoreFields;
+  after_data: ChoreFields;
+  undone: boolean;
+  dismissed: boolean;
+  created_at: string;
+};
+
 export type Profile = {
   id: string;
   email: string | null;
@@ -276,6 +295,20 @@ export const COLOR_LABELS: Record<string, string> = {
   ochre: "赭黄 Ochre",
   plum: "梅紫 Plum",
 };
+
+export const choreEditsQuery = queryOptions({
+  queryKey: ["chore_edits"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("chore_edits")
+      .select("*")
+      .eq("dismissed", false)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as ChoreEdit[];
+  },
+});
 
 export function formatDay(date: Date) {
   return date.toLocaleDateString(LOCALE, {
