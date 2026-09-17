@@ -394,6 +394,12 @@ function ChoreBoard() {
             onComplete={(chore) => complete.mutate(chore)}
             onOpen={setSelected}
           />
+          <RecentSection
+            completions={recent}
+            members={members}
+            open={showRecent}
+            onToggle={() => setShowRecent((value) => !value)}
+          />
         </div>
       )}
 
