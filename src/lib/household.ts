@@ -210,7 +210,11 @@ export const shoppingQuery = queryOptions({
   queryKey: ["shopping_items"],
   queryFn: async () =>
     unwrap<ShoppingItem[]>(
-      await supabase.from("shopping_items").select("*").order("created_at"),
+      await supabase
+        .from("shopping_items")
+        .select("*")
+        .or(`buy_after.is.null,buy_after.lte.${toDateKey(new Date())}`)
+        .order("created_at"),
     ),
 });
 
