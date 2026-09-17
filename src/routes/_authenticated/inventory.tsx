@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Pencil, Plus, Trash2, Undo2, X } from "lucide-react";
+import { Plus, Trash2, Undo2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell, useCurrentUserId } from "@/components/household/AppShell";
@@ -347,51 +347,41 @@ function InventoryPage() {
                           low && "border-clay/50",
                         )}
                       >
-                        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-                          <p className="flex min-w-0 flex-wrap items-center gap-2 font-medium text-foreground">
-                            <span className="truncate">{item.name}</span>
-                            <Select
-                              value={item.status}
-                              onValueChange={(value) =>
-                                setStatus.mutate({
-                                  item,
-                                  status: value as StockStatus,
-                                })
-                              }
-                            >
-                              <SelectTrigger
-                                aria-label="库存状态"
-                                className={cn(
-                                  "h-7 w-auto shrink-0 gap-1 rounded-full border px-2.5 text-xs",
-                                  item.status === "low"
-                                    ? "border-transparent bg-ochre text-ochre-foreground"
-                                    : item.status === "out"
-                                      ? "border-transparent bg-clay text-clay-foreground"
-                                      : "border-transparent bg-primary text-primary-foreground",
-                                  "[&>svg]:opacity-80",
-                                )}
-                              >
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {STOCK_STATUSES.map((option) => (
-                                  <SelectItem key={option} value={option}>
-                                    {STOCK_STATUS_LABELS[option]}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                        <div className="flex items-center justify-between gap-x-3">
+                          <p className="min-w-0 truncate font-medium text-foreground">
+                            {item.name}
                           </p>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setEditing(editing === item.id ? null : item.id)
+                          <Select
+                            value={item.status}
+                            onValueChange={(value) =>
+                              setStatus.mutate({
+                                item,
+                                status: value as StockStatus,
+                              })
                             }
-                            aria-label="编辑"
-                            className="ml-auto shrink-0 self-start rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted"
                           >
-                            <Pencil className="size-3.5" />
-                          </button>
+                            <SelectTrigger
+                              aria-label="库存状态"
+                              className={cn(
+                                "h-7 w-auto shrink-0 gap-1 rounded-full border px-2.5 text-xs",
+                                item.status === "low"
+                                  ? "border-transparent bg-ochre text-ochre-foreground"
+                                  : item.status === "out"
+                                    ? "border-transparent bg-clay text-clay-foreground"
+                                    : "border-transparent bg-primary text-primary-foreground",
+                                "[&>svg]:opacity-80",
+                              )}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {STOCK_STATUSES.map((option) => (
+                                <SelectItem key={option} value={option}>
+                                  {STOCK_STATUS_LABELS[option]}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
 
                         {item.note && editing !== item.id ? (
