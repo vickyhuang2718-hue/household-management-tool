@@ -143,7 +143,7 @@ function InventoryPage() {
                             </p>
                           </div>
                         </div>
-                        <div className="mt-3 flex flex-wrap gap-1.5">
+                        <div className="mt-3 flex flex-wrap justify-end gap-1.5">
                           {STOCK_STATUSES.map((option) => (
                             <button
                               key={option}
