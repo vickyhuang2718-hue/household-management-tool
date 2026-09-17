@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, Plus } from "lucide-react";
 import { toast } from "sonner";
 
-import { AppShell } from "@/components/household/AppShell";
+import { AppShell, useCurrentUserId } from "@/components/household/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +26,7 @@ import {
   membersQuery,
   nextDueDate,
   parseDateKey,
+  profileQuery,
   toDateKey,
 } from "@/lib/household";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,13 @@ function ChoreBoard() {
   const { data: chores = [], isLoading } = useQuery(choresQuery);
   const [filter, setFilter] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const userId = useCurrentUserId();
+  const { data: profile } = useQuery(profileQuery(userId));
+  const myMemberId = profile?.member_id ?? null;
+
+  useEffect(() => {
+    if (myMemberId) setFilter(myMemberId);
+  }, [myMemberId]);
 
   const todayKey = toDateKey(new Date());
 
