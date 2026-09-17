@@ -14,6 +14,6 @@
 - [x] Admin sees every edit and can undo it with one click
 - [x] Remove the 宝宝 family member
 - [x] Inventory: pencil button inline with item name; note meta shown as suffix on the note line
-- [ ] Settings: admin sees an editable household name field (and the join key)
-- [ ] Settings: more avatar colour choices
-- [ ] Chores: member filter chips on a single line
+- [x] Settings: admin sees an editable household name field (and the join key)
+- [x] Settings: more avatar colour choices
+- [x] Chores: member filter chips on a single line (icon-only badges, scroll bar below the line)

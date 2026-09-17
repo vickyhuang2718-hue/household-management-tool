@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell, useCurrentUserId } from "@/components/household/AppShell";
@@ -39,6 +40,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
 
 function SettingsPage() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const userId = useCurrentUserId();
   const { data: profile } = useQuery(profileQuery(userId));
   const { data: members = [] } = useQuery(membersQuery);
@@ -288,6 +290,20 @@ function SettingsPage() {
           你是这个家的管理员（第一个注册的人）。
         </p>
       ) : null}
+
+      <Button
+        variant="outline"
+        className="mt-6 w-full"
+        disabled={saving}
+        onClick={async () => {
+          await queryClient.cancelQueries();
+          queryClient.clear();
+          await supabase.auth.signOut();
+          navigate({ to: "/auth", replace: true });
+        }}
+      >
+        <LogOut className="size-4" /> 退出登录
+      </Button>
     </AppShell>
   );
 }

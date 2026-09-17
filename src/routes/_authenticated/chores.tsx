@@ -216,9 +216,58 @@ function ChoreBoard() {
   );
   const upcoming = visible.filter((c) => c.due_date > weekEndKey);
 
+  const filterRow = (
+    <div className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent [&>button]:shrink-0">
+      <button
+        type="button"
+        onClick={() => setFilter(null)}
+        className={cn(
+          "rounded-full border border-border px-4 py-2 text-sm font-medium transition-colors",
+          filter === null ? "bg-primary text-primary-foreground" : "bg-card",
+        )}
+      >
+        全家
+      </button>
+      <button
+        type="button"
+        onClick={() => setFilter("unassigned")}
+        className={cn(
+          "rounded-full border border-border px-4 py-2 text-sm font-medium transition-colors",
+          filter === "unassigned" ? "bg-primary text-primary-foreground" : "bg-card",
+        )}
+      >
+        待认领
+      </button>
+      {members.map((member) => (
+        <button
+          key={member.id}
+          type="button"
+          aria-label={`只看 ${member.name} 的家务`}
+          onClick={() => setFilter(member.id)}
+          className={cn(
+            "flex items-center rounded-full border p-0.5 transition-colors",
+            filter === member.id
+              ? "border-primary ring-2 ring-primary ring-offset-2 ring-offset-background"
+              : "border-transparent",
+          )}
+        >
+          <span
+            className={cn(
+              "flex size-8 items-center justify-center rounded-full text-xs font-semibold",
+              memberToneClass[member.color] ?? "bg-muted text-foreground",
+            )}
+          >
+            {memberBadge(member)}
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <AppShell
       title="今天的家事"
+      pinned={filterRow}
       subtitle={new Date().toLocaleDateString("zh-CN", {
         weekday: "long",
         day: "numeric",
@@ -263,50 +312,6 @@ function ChoreBoard() {
           ))}
         </section>
       )}
-
-      <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [&::-webkit-scrollbar]:hidden [&>button]:shrink-0 [&>button]:whitespace-nowrap">
-        <button
-          type="button"
-          onClick={() => setFilter(null)}
-          className={cn(
-            "rounded-full border border-border px-4 py-2 text-sm font-medium transition-colors",
-            filter === null ? "bg-primary text-primary-foreground" : "bg-card",
-          )}
-        >
-          全家
-        </button>
-        <button
-          type="button"
-          onClick={() => setFilter("unassigned")}
-          className={cn(
-            "rounded-full border border-border px-4 py-2 text-sm font-medium transition-colors",
-            filter === "unassigned" ? "bg-primary text-primary-foreground" : "bg-card",
-          )}
-        >
-          待认领
-        </button>
-        {members.map((member) => (
-          <button
-            key={member.id}
-            type="button"
-            onClick={() => setFilter(member.id)}
-            className={cn(
-              "flex items-center gap-2 rounded-full border border-border px-3 py-2 text-sm font-medium transition-colors",
-              filter === member.id ? "bg-primary text-primary-foreground" : "bg-card",
-            )}
-          >
-            <span
-              className={cn(
-                "flex size-6 items-center justify-center rounded-full text-[11px] font-semibold",
-                memberToneClass[member.color] ?? "bg-muted text-foreground",
-              )}
-            >
-              {memberBadge(member)}
-            </span>
-            {member.name}
-          </button>
-        ))}
-      </div>
 
       {isLoading ? (
         <p className="mt-8 text-sm text-muted-foreground">正在加载家务板…</p>
@@ -366,8 +371,13 @@ function ChoreBoard() {
           pending={addChore.isPending}
         />
       ) : (
-        <Button className="mt-8 w-full" size="lg" onClick={() => setShowForm(true)}>
-          <Plus className="size-4" /> 添加家务
+        <Button
+          className="fixed right-5 bottom-20 z-30 size-14 rounded-full shadow-lg"
+          size="icon"
+          aria-label="添加家务"
+          onClick={() => setShowForm(true)}
+        >
+          <Plus className="size-6" />
         </Button>
       )}
     </AppShell>
