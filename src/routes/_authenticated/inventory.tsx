@@ -181,6 +181,22 @@ function InventoryPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const dismissAllEdits = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("inventory_edits")
+        .update({ dismissed: true })
+        .in("id", edits.map((edit) => edit.id));
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inventory_edits"] });
+      toast.success("已忽略全部通知");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+
 
 
   const setStatus = useMutation({
