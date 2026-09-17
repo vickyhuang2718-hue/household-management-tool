@@ -199,21 +199,36 @@ function ChoreBoard() {
             chores={overdue}
             members={members}
             onComplete={(chore) => complete.mutate(chore)}
+            onOpen={setSelected}
           />
           <ChoreGroup
             heading="今天"
             chores={today}
             members={members}
             onComplete={(chore) => complete.mutate(chore)}
+            onOpen={setSelected}
           />
           <ChoreGroup
             heading="接下来"
             chores={upcoming}
             members={members}
             onComplete={(chore) => complete.mutate(chore)}
+            onOpen={setSelected}
           />
         </div>
       )}
+
+      <ChoreDetailDialog
+        chore={selected}
+        members={members}
+        todayKey={todayKey}
+        onClose={() => setSelected(null)}
+        onComplete={(chore) => {
+          setSelected(null);
+          complete.mutate(chore);
+        }}
+        completing={complete.isPending}
+      />
 
       {showForm ? (
         <ChoreForm
