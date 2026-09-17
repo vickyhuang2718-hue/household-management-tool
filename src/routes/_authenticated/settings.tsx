@@ -13,6 +13,7 @@ import {
   COLOR_LABELS,
   householdQuery,
   isAdminQuery,
+  joinRequestsQuery,
   memberBadge,
   memberToneClass,
   membersQuery,
@@ -43,6 +44,10 @@ function SettingsPage() {
   const { data: members = [] } = useQuery(membersQuery);
   const { data: household } = useQuery(householdQuery);
   const { data: isAdmin = false } = useQuery(isAdminQuery(userId));
+  const { data: joinRequests = [] } = useQuery({
+    ...joinRequestsQuery,
+    enabled: isAdmin,
+  });
 
   const me = members.find((member) => member.id === profile?.member_id) ?? null;
   const [householdName, setHouseholdName] = useState("");
@@ -70,7 +75,7 @@ function SettingsPage() {
     if (!household) return;
     setSaving(true);
     const { error } = await supabase
-      .from("household_settings")
+      .from("households")
       .update({ name: householdName.trim() })
       .eq("id", household.id);
     setSaving(false);
@@ -78,8 +83,22 @@ function SettingsPage() {
       toast.error(error.message);
       return;
     }
-    queryClient.invalidateQueries({ queryKey: ["household_settings"] });
+    queryClient.invalidateQueries({ queryKey: ["households"] });
     toast.success("家庭名称已更新");
+  }
+
+  async function resolveRequest(id: string, approve: boolean) {
+    const { error } = await supabase.rpc("resolve_join_request", {
+      _request_id: id,
+      _approve: approve,
+    });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ["join_requests"] });
+    refreshMembers();
+    toast.success(approve ? "已通过，TA 可以进来了" : "已婉拒");
   }
 
   async function saveMyProfile(event: React.FormEvent) {
@@ -141,6 +160,46 @@ function SettingsPage() {
           </p>
         )}
       </section>
+
+      {isAdmin ? (
+        <section className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <h2 className="text-sm font-semibold text-foreground">邀请码</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            把这串码发给家人，他们注册后输入就能申请加入。
+          </p>
+          <p className="mt-3 rounded-xl bg-muted px-4 py-3 text-center text-xl font-semibold tracking-[0.3em] text-foreground">
+            {household?.join_key ?? "—"}
+          </p>
+
+          <h3 className="mt-5 text-sm font-semibold text-foreground">加入申请</h3>
+          {joinRequests.length === 0 ? (
+            <p className="mt-2 text-sm text-muted-foreground">暂时没有新的申请。</p>
+          ) : (
+            <ul className="mt-2 space-y-2">
+              {joinRequests.map((request) => (
+                <li
+                  key={request.id}
+                  className="flex items-center gap-2 rounded-xl border border-border px-3 py-2"
+                >
+                  <span className="flex-1 text-sm text-foreground">
+                    {request.display_name}
+                  </span>
+                  <Button size="sm" onClick={() => resolveRequest(request.id, true)}>
+                    通过
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => resolveRequest(request.id, false)}
+                  >
+                    婉拒
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
 
       <section className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
         <h2 className="text-sm font-semibold text-foreground">我的资料</h2>
