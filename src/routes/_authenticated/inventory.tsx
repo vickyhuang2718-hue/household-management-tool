@@ -314,15 +314,17 @@ function InventoryPage() {
 
                         {item.note && editing !== item.id ? (
                           <div className="mt-2 rounded-lg bg-muted/60 px-2.5 py-1.5">
-                            <p className="text-sm text-foreground">{item.note}</p>
-                            <p className="mt-0.5 text-[11px] text-muted-foreground">
-                              {item.note_updated_by ?? "某人"} ·{" "}
-                              {item.note_updated_at
-                                ? new Date(item.note_updated_at).toLocaleDateString(
-                                    LOCALE,
-                                    { month: "long", day: "numeric" },
-                                  )
-                                : ""}
+                            <p className="text-sm text-foreground">
+                              {item.note}{" "}
+                              <span className="whitespace-nowrap text-[11px] text-muted-foreground">
+                                · {item.note_updated_by ?? "某人"}
+                                {item.note_updated_at
+                                  ? ` · ${new Date(item.note_updated_at).toLocaleDateString(
+                                      LOCALE,
+                                      { month: "long", day: "numeric" },
+                                    )}`
+                                  : ""}
+                              </span>
                             </p>
                           </div>
                         ) : null}
