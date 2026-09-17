@@ -52,6 +52,7 @@ export function AppShell({
   const userId = useCurrentUserId();
   const { data: profile } = useQuery(profileQuery(userId));
   const { data: members = [] } = useQuery(membersQuery);
+  const { data: household } = useQuery(householdQuery);
   const [saving, setSaving] = useState(false);
 
   const me = members.find((member) => member.id === profile?.member_id);
