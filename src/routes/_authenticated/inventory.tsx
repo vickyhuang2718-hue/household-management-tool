@@ -282,6 +282,16 @@ function InventoryPage() {
                                 aria-label="没有了"
                               />
                             ) : null}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setEditing(editing === item.id ? null : item.id)
+                              }
+                              aria-label="编辑"
+                              className="shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted"
+                            >
+                              <Pencil className="size-3.5" />
+                            </button>
                           </p>
                           <div className="flex flex-wrap items-center gap-1.5">
                             {STOCK_STATUSES.map((option) => (
@@ -299,16 +309,6 @@ function InventoryPage() {
                                 {STOCK_STATUS_LABELS[option]}
                               </button>
                             ))}
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setEditing(editing === item.id ? null : item.id)
-                              }
-                              aria-label="编辑"
-                              className="rounded-full border border-border p-1.5 text-muted-foreground transition-colors hover:bg-muted"
-                            >
-                              <Pencil className="size-3.5" />
-                            </button>
                           </div>
                         </div>
 
