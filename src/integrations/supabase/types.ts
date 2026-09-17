@@ -556,6 +556,7 @@ export type Database = {
       }
       shopping_items: {
         Row: {
+          buy_after: string | null
           category: string
           checked: boolean
           created_at: string
@@ -566,6 +567,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          buy_after?: string | null
           category?: string
           checked?: boolean
           created_at?: string
@@ -576,6 +578,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          buy_after?: string | null
           category?: string
           checked?: boolean
           created_at?: string

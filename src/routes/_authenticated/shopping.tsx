@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, queryOptions } from "@tanstack/react-query";
 import { useState } from "react";
 import { Check, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -17,6 +17,8 @@ import {
   shoppingQuery,
   toDateKey,
 } from "@/lib/household";
+
+
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/shopping")({
@@ -41,6 +43,7 @@ export const Route = createFileRoute("/_authenticated/shopping")({
 function ShoppingPage() {
   const queryClient = useQueryClient();
   const { data: list = [], isLoading } = useQuery(shoppingQuery);
+  const { data: upcoming = [] } = useQuery(upcomingShoppingQuery);
   const { data: inventory = [] } = useQuery(inventoryQuery);
   const { data: meals = [] } = useQuery(mealsQuery);
   const { data: ingredients = [] } = useQuery(mealIngredientsQuery);
@@ -75,6 +78,42 @@ function ShoppingPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+
+  const saveUpcomingName = useMutation({
+    mutationFn: async (values: { id: string; name: string }) => {
+      const { error } = await supabase
+        .from("shopping_items")
+        .update({ name: values.name })
+        .eq("id", values.id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      invalidate();
+      setEditingId(null);
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const postponeUpcoming = useMutation({
+    mutationFn: async (values: { id: string; from: string; days: number }) => {
+      const { error } = await supabase
+        .from("shopping_items")
+        .update({
+          buy_after: toDateKey(addDays(new Date(`${values.from}T00:00:00`), values.days)),
+        })
+        .eq("id", values.id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      invalidate();
+      setEditingId(null);
+      toast.success("已推迟 · Postponed");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const finishTrip = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("shopping_items").delete().eq("checked", true);
@@ -90,9 +129,6 @@ function ShoppingPage() {
   const listNames = new Set(list.map((item) => item.name.toLowerCase()));
   const inventoryNames = new Set(inventory.map((item) => item.name.toLowerCase()));
 
-  const lowSuggestions = inventory
-    .filter((item) => Number(item.quantity) <= Number(item.low_threshold))
-    .filter((item) => !listNames.has(item.name.toLowerCase()));
 
   const weekStart = toDateKey(new Date());
   const weekEnd = toDateKey(addDays(new Date(), 7));
@@ -187,16 +223,100 @@ function ShoppingPage() {
         </Button>
       ) : null}
 
-      <Suggestions
-        heading="家里快用完了 · Running low"
-        items={lowSuggestions.map((item) => ({
-          key: item.id,
-          label: `${item.name} (剩 ${Number(item.quantity)} ${item.unit})`,
-          name: item.name,
-          category: item.category,
-        }))}
-        onAdd={(values) => addItem.mutate(values)}
-      />
+      <section className="mt-8">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          稍后要买 · Upcoming
+        </h2>
+        {upcoming.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">
+            没有安排稍后要买的东西 · Nothing scheduled yet.
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {upcoming.map((item) => {
+              const days = Math.round(
+                (new Date(`${item.buy_after}T00:00:00`).getTime() -
+                  new Date(`${toDateKey(new Date())}T00:00:00`).getTime()) /
+                  86400000,
+              );
+              return (
+                <li
+                  key={item.id}
+                  className="rounded-xl border border-border bg-card p-3 shadow-sm"
+                >
+                  {editingId === item.id ? (
+                    <div className="space-y-3">
+                      <Input
+                        value={editingName}
+                        onChange={(event) => setEditingName(event.target.value)}
+                        aria-label="物品名称 Item name"
+                      />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs text-muted-foreground">推迟 Postpone：</span>
+                        {[1, 2, 3].map((days) => (
+                          <Button
+                            key={days}
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            disabled={postponeUpcoming.isPending}
+                            onClick={() =>
+                              postponeUpcoming.mutate({
+                                id: item.id,
+                                from: item.buy_after ?? toDateKey(new Date()),
+                                days,
+                              })
+                            }
+                          >
+                            {days} 天
+                          </Button>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={saveUpcomingName.isPending || !editingName.trim()}
+                          onClick={() =>
+                            saveUpcomingName.mutate({ id: item.id, name: editingName.trim() })
+                          }
+                        >
+                          保存
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditingId(null)}
+                        >
+                          取消
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between gap-3">
+                      <button
+                        type="button"
+                        className="flex-1 min-w-0 cursor-pointer text-left font-medium underline-offset-2 hover:underline"
+                        onClick={() => {
+                          setEditingId(item.id);
+                          setEditingName(item.name);
+                        }}
+                      >
+                        {item.name}
+                        {item.quantity ? ` · ${item.quantity}` : ""}
+                      </button>
+                      <span className="shrink-0 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
+                        {days} 天后 · due in {days} {days === 1 ? "day" : "days"}
+                      </span>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
 
       <Suggestions
         heading="本周菜单需要 · Needed for this week's meals"
@@ -212,6 +332,19 @@ function ShoppingPage() {
     </AppShell>
   );
 }
+
+const upcomingShoppingQuery = queryOptions({
+  queryKey: ["shopping_items", "upcoming"],
+  queryFn: async (): Promise<ShoppingItem[]> => {
+    const { data, error } = await supabase
+      .from("shopping_items")
+      .select("*")
+      .gt("buy_after", toDateKey(new Date()))
+      .order("buy_after");
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  },
+});
 
 function Suggestions({
   heading,
