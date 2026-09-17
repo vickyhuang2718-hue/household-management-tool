@@ -307,10 +307,21 @@ function MealsPage() {
                         {meal ? (
                           <button
                             type="button"
-                            aria-label="标记为已做"
-                            onClick={() => toggleCooked.mutate(meal)}
+                            aria-label="这一餐怎么做"
+                            disabled={
+                              slotDishes.length === 0 || cookingGuide.isPending
+                            }
+                            onClick={() =>
+                              cookingGuide.mutate({
+                                title: `${day.toLocaleDateString("zh-CN", {
+                                  weekday: "long",
+                                })} · ${SLOT_LABELS[slot] ?? slot}`,
+                                slot: SLOT_LABELS[slot] ?? slot,
+                                dishes: slotDishes,
+                              })
+                            }
                             className={cn(
-                              "flex size-8 items-center justify-center rounded-full border border-border transition-colors",
+                              "flex size-8 items-center justify-center rounded-full border border-border transition-colors disabled:opacity-40",
                               meal.cooked
                                 ? "bg-primary text-primary-foreground"
                                 : "text-muted-foreground",
