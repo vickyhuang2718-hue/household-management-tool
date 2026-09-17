@@ -11,6 +11,14 @@ import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { MyProfileEditor } from "@/components/household/MyProfileEditor";
 import { supabase } from "@/integrations/supabase/client";
 import {
   householdQuery,
@@ -135,15 +143,27 @@ export function AppShell({
           </div>
           <div className="flex shrink-0 items-center gap-1">
             {me ? (
-              <span
-                className={cn(
-                  "flex size-9 items-center justify-center rounded-full text-base",
-                  memberToneClass[me.color] ?? "bg-muted text-foreground",
-                )}
-                title={me.name}
-              >
-                {memberBadge(me)}
-              </span>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="我的资料"
+                    className={cn(
+                      "flex size-9 items-center justify-center rounded-full text-base transition-transform hover:scale-105",
+                      memberToneClass[me.color] ?? "bg-muted text-foreground",
+                    )}
+                    title={me.name}
+                  >
+                    {memberBadge(me)}
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="max-w-sm">
+                  <DialogHeader>
+                    <DialogTitle>我的资料</DialogTitle>
+                  </DialogHeader>
+                  <MyProfileEditor me={me} />
+                </DialogContent>
+              </Dialog>
             ) : null}
             <Button variant="ghost" size="icon" aria-label="家庭设置" asChild>
               <Link to="/settings">
