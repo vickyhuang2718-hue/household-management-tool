@@ -21,6 +21,7 @@ import {
   FREQUENCY_LABELS,
   type Chore,
   choresQuery,
+  memberBadge,
   memberToneClass,
   membersQuery,
   nextDueDate,
