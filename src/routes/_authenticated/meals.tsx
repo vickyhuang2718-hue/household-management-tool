@@ -365,6 +365,7 @@ function MealsPage() {
                                 baby_tag: dish.baby_tag,
                               }}
                               pending={updateDish.isPending}
+                              library={dishLibrary}
                               onSave={(draft) => updateDish.mutate({ id: dish.id, draft })}
                               onCancel={() => setEditingDish(null)}
                               onDelete={() => deleteDish.mutate(dish.id)}
