@@ -10,6 +10,6 @@
 - [x] Family log in (email + password), each account linked to a person
 - [x] Translate the whole app to Simplified Chinese
 - [x] Shopping list shown in both Chinese and English
-- [ ] Edit a chore (name, assignee, note, recurrence, due date) in the details pop-up
-- [ ] Admin sees every edit and can undo it with one click
-- [ ] Remove the 宝宝 family member
+- [x] Edit a chore (name, assignee, note, recurrence, due date) in the details pop-up
+- [x] Admin sees every edit and can undo it with one click
+- [x] Remove the 宝宝 family member
