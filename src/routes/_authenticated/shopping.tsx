@@ -188,6 +188,41 @@ function ShoppingPage() {
         </Button>
       ) : null}
 
+      <section className="mt-8">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          稍后要买 · Upcoming
+        </h2>
+        {upcoming.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">
+            没有安排稍后要买的东西 · Nothing scheduled yet.
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {upcoming.map((item) => {
+              const days = Math.round(
+                (new Date(`${item.buy_after}T00:00:00`).getTime() -
+                  new Date(`${toDateKey(new Date())}T00:00:00`).getTime()) /
+                  86400000,
+              );
+              return (
+                <li
+                  key={item.id}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2.5 shadow-sm"
+                >
+                  <span className="flex-1 font-medium">
+                    {item.name}
+                    {item.quantity ? ` · ${item.quantity}` : ""}
+                  </span>
+                  <span className="shrink-0 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
+                    {days} 天后 · due in {days} {days === 1 ? "day" : "days"}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
       <Suggestions
         heading="家里快用完了 · Running low"
         items={lowSuggestions.map((item) => ({
