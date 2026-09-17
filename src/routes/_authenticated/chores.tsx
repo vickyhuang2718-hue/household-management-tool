@@ -219,6 +219,45 @@ function ChoreBoard() {
         month: "long",
       })}
     >
+      {isAdmin && edits.length > 0 && (
+        <section className="mb-5 space-y-2 rounded-xl border border-border bg-card p-4">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            家务改动通知
+          </h2>
+          {edits.map((edit) => (
+            <div
+              key={edit.id}
+              className="flex items-start gap-2 rounded-lg bg-muted/50 p-3 text-sm"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="font-medium">
+                  {edit.editor_name} 修改了「{edit.before_data.title}」
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {describeEdit(edit, members)}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => undoEdit.mutate(edit)}
+                disabled={undoEdit.isPending}
+              >
+                <Undo2 className="size-4" /> 撤销
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                aria-label="忽略这条通知"
+                onClick={() => dismissEdit.mutate(edit)}
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
+          ))}
+        </section>
+      )}
+
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
