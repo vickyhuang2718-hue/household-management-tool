@@ -1,8 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ChefHat, CopyPlus, Plus, Trash2 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { ChefHat, CopyPlus, Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { getCookingGuide } from "@/lib/cooking.functions";
 
 import { AppShell } from "@/components/household/AppShell";
 import { Button } from "@/components/ui/button";
@@ -63,6 +73,40 @@ function MealsPage() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [adding, setAdding] = useState<string | null>(null);
   const [editingDish, setEditingDish] = useState<string | null>(null);
+  const [guideTitle, setGuideTitle] = useState<string | null>(null);
+  const [guideMeal, setGuideMeal] = useState<Meal | null>(null);
+  const [guideText, setGuideText] = useState<string>("");
+  const cookingGuideFn = useServerFn(getCookingGuide);
+
+  const cookingGuide = useMutation({
+    mutationFn: async (values: {
+      title: string;
+      slot: string;
+      meal: Meal;
+      dishes: MealDish[];
+    }) => {
+      setGuideTitle(values.title);
+      setGuideMeal(values.meal);
+      setGuideText("");
+      const result = await cookingGuideFn({
+        data: {
+          slot: values.slot,
+          dishes: values.dishes.map((dish) => ({
+            name: dish.name,
+            babyTag: BABY_TAG_LABELS[dish.baby_tag],
+            notes: dish.notes ?? undefined,
+          })),
+        },
+      });
+      return result.guide;
+    },
+    onSuccess: (guide) => setGuideText(guide),
+    onError: (error: Error) => {
+      setGuideTitle(null);
+      toast.error(error.message);
+    },
+  });
+
 
   const weekStart = addDays(startOfWeek(new Date()), weekOffset * 7);
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -266,10 +310,22 @@ function MealsPage() {
                         {meal ? (
                           <button
                             type="button"
-                            aria-label="标记为已做"
-                            onClick={() => toggleCooked.mutate(meal)}
+                            aria-label="这一餐怎么做"
+                            disabled={
+                              slotDishes.length === 0 || cookingGuide.isPending
+                            }
+                            onClick={() =>
+                              cookingGuide.mutate({
+                                title: `${day.toLocaleDateString("zh-CN", {
+                                  weekday: "long",
+                                })} · ${SLOT_LABELS[slot] ?? slot}`,
+                                slot: SLOT_LABELS[slot] ?? slot,
+                                meal,
+                                dishes: slotDishes,
+                              })
+                            }
                             className={cn(
-                              "flex size-8 items-center justify-center rounded-full border border-border transition-colors",
+                              "flex size-8 items-center justify-center rounded-full border border-border transition-colors disabled:opacity-40",
                               meal.cooked
                                 ? "bg-primary text-primary-foreground"
                                 : "text-muted-foreground",
@@ -349,6 +405,47 @@ function MealsPage() {
           ))}
         </div>
       )}
+
+      <Dialog
+        open={guideTitle !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setGuideTitle(null);
+            setGuideMeal(null);
+            setGuideText("");
+          }
+        }}
+      >
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{guideTitle} 怎么做</DialogTitle>
+            <DialogDescription>
+              按顺序做这一餐的所有菜，宝宝那份会单独提醒。
+            </DialogDescription>
+          </DialogHeader>
+          {cookingGuide.isPending ? (
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="size-4 animate-spin" /> 正在安排步骤…
+            </p>
+          ) : (
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+              {guideText}
+            </p>
+          )}
+          {guideMeal && !cookingGuide.isPending ? (
+            <Button
+              variant={guideMeal.cooked ? "secondary" : "default"}
+              onClick={() => {
+                toggleCooked.mutate(guideMeal);
+                setGuideMeal({ ...guideMeal, cooked: !guideMeal.cooked });
+              }}
+            >
+              <ChefHat className="size-4" />
+              {guideMeal.cooked ? "取消「已做」" : "标记为已做"}
+            </Button>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
