@@ -72,6 +72,9 @@ function ChoreBoard() {
   const userId = useCurrentUserId();
   const { data: profile } = useQuery(profileQuery(userId));
   const myMemberId = profile?.member_id ?? null;
+  const { data: isAdmin = false } = useQuery(isAdminQuery(userId));
+  const { data: edits = [] } = useQuery(choreEditsQuery);
+  const myName = members.find((m) => m.id === myMemberId)?.name ?? "某位家人";
 
   useEffect(() => {
     if (myMemberId) setFilter(myMemberId);
