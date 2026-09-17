@@ -78,6 +78,41 @@ function ShoppingPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+
+  const saveUpcomingName = useMutation({
+    mutationFn: async (values: { id: string; name: string }) => {
+      const { error } = await supabase
+        .from("shopping_items")
+        .update({ name: values.name })
+        .eq("id", values.id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      invalidate();
+      setEditingId(null);
+onError: (error: Error) => toast.error(error.message),
+  });
+
+  const postponeUpcoming = useMutation({
+    mutationFn: async (values: { id: string; from: string; days: number }) => {
+      const { error } = await supabase
+        .from("shopping_items")
+        .update({
+          buy_after: toDateKey(addDays(new Date(`${values.from}T00:00:00`), values.days)),
+        })
+        .eq("id", values.id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      invalidate();
+      setEditingId(null);
+      toast.success("已推迟 · Postponed");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const finishTrip = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("shopping_items").delete().eq("checked", true);
