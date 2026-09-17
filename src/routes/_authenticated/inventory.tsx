@@ -39,6 +39,7 @@ import {
   isAdminQuery,
   membersQuery,
   profileQuery,
+  toDateKey,
 } from "@/lib/household";
 
 import { cn } from "@/lib/utils";
@@ -236,7 +237,7 @@ function InventoryPage() {
         date.setDate(date.getDate() + days);
         row.buy_after = toDateKey(date);
       }
-      const { error } = await supabase.from("shopping_items").insert(row);
+      const { error } = await supabase.from("shopping_items").insert(row as never);
       if (error) throw new Error(error.message);
     },
     onSuccess: (_data, { days }) => {
