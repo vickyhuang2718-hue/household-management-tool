@@ -53,6 +53,50 @@ export type Database = {
           },
         ]
       }
+      chore_edits: {
+        Row: {
+          after_data: Json
+          before_data: Json
+          chore_id: string
+          created_at: string
+          dismissed: boolean
+          edited_by: string | null
+          editor_name: string
+          id: string
+          undone: boolean
+        }
+        Insert: {
+          after_data: Json
+          before_data: Json
+          chore_id: string
+          created_at?: string
+          dismissed?: boolean
+          edited_by?: string | null
+          editor_name?: string
+          id?: string
+          undone?: boolean
+        }
+        Update: {
+          after_data?: Json
+          before_data?: Json
+          chore_id?: string
+          created_at?: string
+          dismissed?: boolean
+          edited_by?: string | null
+          editor_name?: string
+          id?: string
+          undone?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chore_edits_chore_id_fkey"
+            columns: ["chore_id"]
+            isOneToOne: false
+            referencedRelation: "chores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chores: {
         Row: {
           archived: boolean
