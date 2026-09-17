@@ -197,3 +197,31 @@ export function initials(name: string) {
     .map((part) => part[0]?.toUpperCase() ?? "")
     .join("");
 }
+
+export function profileQuery(userId: string | null) {
+  return queryOptions({
+    queryKey: ["profile", userId],
+    enabled: Boolean(userId),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, email, member_id")
+        .eq("id", userId!)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      return (data ?? null) as Profile | null;
+    },
+  });
+}
+
+export function formatDay(date: Date) {
+  return date.toLocaleDateString(LOCALE, {
+    month: "long",
+    day: "numeric",
+    weekday: "long",
+  });
+}
+
+export function formatShortDay(date: Date) {
+  return date.toLocaleDateString(LOCALE, { month: "numeric", day: "numeric" });
+}
