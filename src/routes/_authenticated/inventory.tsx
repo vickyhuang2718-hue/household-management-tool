@@ -19,9 +19,14 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   CATEGORIES,
   CATEGORY_LABELS,
+  LOCALE,
+  STOCK_STATUSES,
+  STOCK_STATUS_LABELS,
   type InventoryItem,
+  type StockStatus,
   inventoryQuery,
 } from "@/lib/household";
+
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/inventory")({
