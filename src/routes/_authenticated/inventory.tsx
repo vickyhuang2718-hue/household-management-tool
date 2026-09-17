@@ -6,6 +6,14 @@ import { toast } from "sonner";
 
 import { AppShell, useCurrentUserId } from "@/components/household/AppShell";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,6 +39,7 @@ import {
   isAdminQuery,
   membersQuery,
   profileQuery,
+  toDateKey,
 } from "@/lib/household";
 
 import { cn } from "@/lib/utils";
@@ -207,7 +216,35 @@ function InventoryPage() {
         .eq("id", item.id);
       if (error) throw new Error(error.message);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["inventory_items"] }),
+    onSuccess: (_data, { item, status }) => {
+      queryClient.invalidateQueries({ queryKey: ["inventory_items"] });
+      if (status !== "enough") setShopPrompt(item);
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const [shopPrompt, setShopPrompt] = useState<InventoryItem | null>(null);
+  const [shopDays, setShopDays] = useState("1");
+
+  const addToShopping = useMutation({
+    mutationFn: async ({ item, days }: { item: InventoryItem; days: number }) => {
+      const row: { name: string; category: string; buy_after?: string } = {
+        name: item.name,
+        category: item.category,
+      };
+      if (days > 0) {
+        const date = new Date();
+        date.setDate(date.getDate() + days);
+        row.buy_after = toDateKey(date);
+      }
+      const { error } = await supabase.from("shopping_items").insert(row as never);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_data, { days }) => {
+      queryClient.invalidateQueries({ queryKey: ["shopping_items"] });
+      setShopPrompt(null);
+      toast.success(days > 0 ? `已加入采购清单，${days} 天后出现` : "已加入采购清单");
+    },
     onError: (error: Error) => toast.error(error.message),
   });
 
@@ -448,6 +485,60 @@ function InventoryPage() {
           <Plus className="size-4" /> 添加物品
         </Button>
       )}
+
+      <Dialog
+        open={shopPrompt !== null}
+        onOpenChange={(open) => {
+          if (!open) setShopPrompt(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>加入采购清单吗？</DialogTitle>
+            <DialogDescription>
+              「{shopPrompt?.name}」可以现在加入采购清单，或者过几天再提醒。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="shop-days" className="shrink-0 text-sm">
+              推迟天数
+            </Label>
+            <Select value={shopDays} onValueChange={setShopDays}>
+              <SelectTrigger id="shop-days" className="w-28">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 天</SelectItem>
+                <SelectItem value="2">2 天</SelectItem>
+                <SelectItem value="3">3 天</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button
+              onClick={() =>
+                shopPrompt && addToShopping.mutate({ item: shopPrompt, days: 0 })
+              }
+              disabled={addToShopping.isPending}
+            >
+              现在加入
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() =>
+                shopPrompt &&
+                addToShopping.mutate({ item: shopPrompt, days: Number(shopDays) })
+              }
+              disabled={addToShopping.isPending}
+            >
+              {shopDays} 天后加入
+            </Button>
+            <Button variant="ghost" onClick={() => setShopPrompt(null)}>
+              不用了
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
