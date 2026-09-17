@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Check, Plus } from "lucide-react";
+import { Check, Pencil, Plus, Undo2, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -22,12 +22,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import {
   FREQUENCIES,
   FREQUENCY_LABELS,
   type Chore,
+  type ChoreEdit,
+  type ChoreFields,
+  choreEditsQuery,
   choresQuery,
+  isAdminQuery,
   memberBadge,
   memberToneClass,
   membersQuery,
