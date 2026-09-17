@@ -214,34 +214,3 @@ function SettingsPage() {
     </AppShell>
   );
 }
-
-function ColorRow({
-  member,
-  onPick,
-}: {
-  member: Member;
-  onPick: (member: Member, color: string) => void;
-}) {
-  return (
-    <div className="mt-2 flex flex-wrap gap-2">
-      {COLOR_CHOICES.map((color) => (
-        <button
-          key={color}
-          type="button"
-          onClick={() => onPick(member, color)}
-          className={cn(
-            "flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-            member.color === color
-              ? "border-primary text-foreground"
-              : "border-border text-muted-foreground hover:border-primary",
-          )}
-        >
-          <span
-            className={cn("size-4 rounded-full", memberToneClass[color] ?? "bg-muted")}
-          />
-          {COLOR_LABELS[color]}
-        </button>
-      ))}
-    </div>
-  );
-}
