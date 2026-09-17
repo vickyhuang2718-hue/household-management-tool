@@ -48,7 +48,7 @@ function Landing() {
           Household Hub
         </p>
         <h1 className="mt-2 text-4xl font-semibold leading-tight text-foreground">
-          一家人的家事管家
+          家事管家
         </h1>
         <p className="mt-3 text-base text-muted-foreground">
           家务、菜单、库存和采购，一家四口共用一处，人人都能随时更新。
