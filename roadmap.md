@@ -13,3 +13,4 @@
 - [x] Edit a chore (name, assignee, note, recurrence, due date) in the details pop-up
 - [x] Admin sees every edit and can undo it with one click
 - [x] Remove the 宝宝 family member
+- [x] Inventory: pencil button inline with item name; note meta shown as suffix on the note line
