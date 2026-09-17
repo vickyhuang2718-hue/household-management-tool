@@ -10,15 +10,15 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import {
   type ShoppingItem,
-  type Unwrap,
   addDays,
   inventoryQuery,
   mealIngredientsQuery,
   mealsQuery,
   shoppingQuery,
   toDateKey,
-  unwrap,
 } from "@/lib/household";
+import { supabase as sb, unwrap as unwrapData } from "@/lib/household";
+
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/shopping")({
