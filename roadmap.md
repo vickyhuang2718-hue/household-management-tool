@@ -17,5 +17,3 @@
 - [ ] Settings: admin sees an editable household name field (and the join key)
 - [ ] Settings: more avatar colour choices
 - [ ] Chores: member filter chips on a single line
-- Chores: replace the full-width 添加家务 button with a floating icon-only action button in the bottom-right corner
-- AppShell: remove header sign-out button; add a sign-out option in Settings instead
