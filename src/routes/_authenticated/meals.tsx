@@ -383,6 +383,7 @@ function MealsPage() {
                           <DishForm
                             initial={{ name: "", notes: "", baby_tag: "reserve" }}
                             pending={addDish.isPending}
+                            library={dishLibrary}
                             onSave={(draft) =>
                               addDish.mutate({
                                 meal_date: toDateKey(day),
