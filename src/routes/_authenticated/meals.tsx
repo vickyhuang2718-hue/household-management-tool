@@ -513,12 +513,45 @@ function DishForm({
     >
       <div className="space-y-2">
         <Label>菜名</Label>
-        <Input
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="例如：番茄炒蛋"
-          required
-        />
+        <div className="relative">
+          <Input
+            value={name}
+            onChange={(event) => {
+              setName(event.target.value);
+              setShowSuggestions(true);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            placeholder="例如：番茄炒蛋"
+            required
+          />
+          {showSuggestions && suggestions.length > 0 ? (
+            <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-border bg-popover shadow-md">
+              {suggestions.map((dish) => (
+                <button
+                  key={dish.name}
+                  type="button"
+                  onClick={() => {
+                    setName(dish.name);
+                    setBabyTag(dish.baby_tag);
+                    if (!notes.trim() && dish.notes) setNotes(dish.notes);
+                    setShowSuggestions(false);
+                  }}
+                  className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-accent"
+                >
+                  <span className="min-w-0 flex-1 truncate">{dish.name}</span>
+                  <span
+                    className={cn(
+                      "shrink-0 rounded-full px-2 py-0.5 text-[11px]",
+                      BABY_TAG_TONES[dish.baby_tag],
+                    )}
+                  >
+                    {BABY_TAG_LABELS[dish.baby_tag]}
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </div>
       <div className="space-y-2">
         <Label>宝宝能不能吃</Label>
