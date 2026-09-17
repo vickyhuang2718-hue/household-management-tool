@@ -284,12 +284,14 @@ function InventoryPage() {
                           </div>
                         ) : null}
 
-                        {noteFor === item.id ? (
-                          <NoteEditor
+                        {editing === item.id ? (
+                          <ItemEditor
                             item={item}
-                            pending={saveNote.isPending}
-                            onCancel={() => setNoteFor(null)}
-                            onSave={(note) => saveNote.mutate({ item, note })}
+                            pending={saveItem.isPending}
+                            onCancel={() => setEditing(null)}
+                            onSave={(name, note) =>
+                              saveItem.mutate({ item, name, note })
+                            }
                           />
                         ) : null}
                       </li>
