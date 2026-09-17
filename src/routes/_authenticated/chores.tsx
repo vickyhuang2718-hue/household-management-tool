@@ -208,7 +208,13 @@ function ChoreBoard() {
     : chores;
   const overdue = visible.filter((c) => c.due_date < todayKey);
   const today = visible.filter((c) => c.due_date === todayKey);
-  const upcoming = visible.filter((c) => c.due_date > todayKey);
+  const weekEnd = new Date();
+  weekEnd.setDate(weekEnd.getDate() + ((7 - weekEnd.getDay()) % 7)); // 本周日
+  const weekEndKey = toDateKey(weekEnd);
+  const thisWeek = visible.filter(
+    (c) => c.due_date > todayKey && c.due_date <= weekEndKey,
+  );
+  const upcoming = visible.filter((c) => c.due_date > weekEndKey);
 
   return (
     <AppShell
@@ -322,7 +328,14 @@ function ChoreBoard() {
             onOpen={setSelected}
           />
           <ChoreGroup
-            heading="接下来"
+            heading="本周剩余 · Rest of this week"
+            chores={thisWeek}
+            members={members}
+            onComplete={(chore) => complete.mutate(chore)}
+            onOpen={setSelected}
+          />
+          <ChoreGroup
+            heading="以后 · Upcoming"
             chores={upcoming}
             members={members}
             onComplete={(chore) => complete.mutate(chore)}
