@@ -92,7 +92,8 @@ function ShoppingPage() {
     onSuccess: () => {
       invalidate();
       setEditingId(null);
-onError: (error: Error) => toast.error(error.message),
+    },
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const postponeUpcoming = useMutation({
