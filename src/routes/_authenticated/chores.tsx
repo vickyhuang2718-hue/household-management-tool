@@ -201,6 +201,22 @@ function ChoreBoard() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const dismissAllEdits = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("chore_edits")
+        .update({ dismissed: true })
+        .in("id", edits.map((edit) => edit.id));
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["chore_edits"] });
+      toast.success("已忽略全部通知");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+
   const visible = filter
     ? chores.filter((c) =>
         filter === "unassigned" ? !c.member_id : c.member_id === filter,
