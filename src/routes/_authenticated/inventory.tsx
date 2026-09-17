@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Plus, StickyNote, TriangleAlert } from "lucide-react";
+import { Pencil, Plus, TriangleAlert, Undo2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell, useCurrentUserId } from "@/components/household/AppShell";
@@ -23,9 +23,12 @@ import {
   LOCALE,
   STOCK_STATUSES,
   STOCK_STATUS_LABELS,
+  type InventoryEdit,
   type InventoryItem,
   type StockStatus,
+  inventoryEditsQuery,
   inventoryQuery,
+  isAdminQuery,
   membersQuery,
   profileQuery,
 } from "@/lib/household";
