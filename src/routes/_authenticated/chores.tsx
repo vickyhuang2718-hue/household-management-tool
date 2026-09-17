@@ -264,7 +264,7 @@ function ChoreBoard() {
         </section>
       )}
 
-      <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [&::-webkit-scrollbar]:hidden [&>button]:shrink-0 [&>button]:whitespace-nowrap">
+      <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-2 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent [&>button]:shrink-0">
         <button
           type="button"
           onClick={() => setFilter(null)}
@@ -289,21 +289,23 @@ function ChoreBoard() {
           <button
             key={member.id}
             type="button"
+            aria-label={`只看 ${member.name} 的家务`}
             onClick={() => setFilter(member.id)}
             className={cn(
-              "flex items-center gap-2 rounded-full border border-border px-3 py-2 text-sm font-medium transition-colors",
-              filter === member.id ? "bg-primary text-primary-foreground" : "bg-card",
+              "flex items-center rounded-full border p-0.5 transition-colors",
+              filter === member.id
+                ? "border-primary ring-2 ring-primary ring-offset-2 ring-offset-background"
+                : "border-transparent",
             )}
           >
             <span
               className={cn(
-                "flex size-6 items-center justify-center rounded-full text-[11px] font-semibold",
+                "flex size-8 items-center justify-center rounded-full text-xs font-semibold",
                 memberToneClass[member.color] ?? "bg-muted text-foreground",
               )}
             >
               {memberBadge(member)}
             </span>
-            {member.name}
           </button>
         ))}
       </div>
