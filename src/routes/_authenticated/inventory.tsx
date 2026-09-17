@@ -233,10 +233,22 @@ function InventoryPage() {
 
   const lowCount = items.filter((item) => item.status !== "enough").length;
 
-  const lastReview = items.reduce<string | null>((latest, item) => {
-    if (!item.reviewed_at) return latest;
-    return !latest || item.reviewed_at > latest ? item.reviewed_at : latest;
-  }, null);
+  const myReview = profile?.inventory_reviewed_on ?? "";
+
+  const setMyReview = useMutation({
+    mutationFn: async (value: string) => {
+      if (!userId) return;
+      const { error } = await supabase
+        .from("profiles")
+        .update({ inventory_reviewed_on: value || null })
+        .eq("id", userId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
 
   return (
     <AppShell
