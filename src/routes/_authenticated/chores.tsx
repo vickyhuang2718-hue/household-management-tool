@@ -104,7 +104,7 @@ function ChoreBoard() {
   const addChore = useMutation({
     mutationFn: async (values: {
       title: string;
-      member_id: string;
+      member_id: string | null;
       frequency: string;
       due_date: string;
     }) => {
@@ -119,7 +119,11 @@ function ChoreBoard() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  const visible = filter ? chores.filter((c) => c.member_id === filter) : chores;
+  const visible = filter
+    ? chores.filter((c) =>
+        filter === "unassigned" ? !c.member_id : c.member_id === filter,
+      )
+    : chores;
   const overdue = visible.filter((c) => c.due_date < todayKey);
   const today = visible.filter((c) => c.due_date === todayKey);
   const upcoming = visible.filter((c) => c.due_date > todayKey);
