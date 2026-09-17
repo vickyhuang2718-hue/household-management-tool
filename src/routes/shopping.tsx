@@ -51,7 +51,9 @@ function ShoppingPage() {
 
   const addItem = useMutation({
     mutationFn: async (values: { name: string; category?: string | undefined }) => {
-      const { error } = await supabase.from("shopping_items").insert(values);
+      const { error } = await supabase
+        .from("shopping_items")
+        .insert({ name: values.name, category: values.category ?? "pantry" });
       if (error) throw new Error(error.message);
     },
     onSuccess: () => {
