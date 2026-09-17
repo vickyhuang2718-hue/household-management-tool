@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Check, Pencil, Plus, Undo2, X } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Pencil, Plus, Undo2, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -30,12 +30,14 @@ import {
   type Chore,
   type ChoreEdit,
   type ChoreFields,
+  type RecentCompletion,
   choreEditsQuery,
   choresQuery,
   isAdminQuery,
   memberBadge,
   memberToneClass,
   membersQuery,
+  recentCompletionsQuery,
   repeatAfter,
   parseDateKey,
   profileQuery,
@@ -70,6 +72,7 @@ function ChoreBoard() {
   const [showForm, setShowForm] = useState(false);
   const [selected, setSelected] = useState<Chore | null>(null);
   const [repeatFor, setRepeatFor] = useState<Chore | null>(null);
+  const [showRecent, setShowRecent] = useState(false);
   const userId = useCurrentUserId();
   const { data: profile } = useQuery(profileQuery(userId));
   const myMemberId = profile?.member_id ?? null;
