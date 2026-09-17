@@ -74,6 +74,7 @@ function MealsPage() {
   const [adding, setAdding] = useState<string | null>(null);
   const [editingDish, setEditingDish] = useState<string | null>(null);
   const [guideTitle, setGuideTitle] = useState<string | null>(null);
+  const [guideMeal, setGuideMeal] = useState<Meal | null>(null);
   const [guideText, setGuideText] = useState<string>("");
   const cookingGuideFn = useServerFn(getCookingGuide);
 
@@ -81,9 +82,11 @@ function MealsPage() {
     mutationFn: async (values: {
       title: string;
       slot: string;
+      meal: Meal;
       dishes: MealDish[];
     }) => {
       setGuideTitle(values.title);
+      setGuideMeal(values.meal);
       setGuideText("");
       const result = await cookingGuideFn({
         data: {
