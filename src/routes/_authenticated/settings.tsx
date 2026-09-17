@@ -209,59 +209,6 @@ function SettingsPage() {
       ) : null}
 
       <section className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
-        <h2 className="text-sm font-semibold text-foreground">我的资料</h2>
-        {me ? (
-          <>
-            <div className="mt-3 flex items-center gap-3">
-              <span
-                className={cn(
-                  "flex size-11 items-center justify-center rounded-full text-lg font-semibold",
-                  memberToneClass[me.color] ?? "bg-muted text-foreground",
-                )}
-              >
-                {[...myInitial.trim()][0] ?? memberBadge(me)}
-              </span>
-              <span className="font-medium text-foreground">{myName || me.name}</span>
-            </div>
-
-            <form className="mt-4 space-y-3" onSubmit={saveMyProfile}>
-              <div className="space-y-1.5">
-                <Label htmlFor="my-name">称呼</Label>
-                <Input
-                  id="my-name"
-                  value={myName}
-                  onChange={(event) => setMyName(event.target.value)}
-                  placeholder="你在家里的称呼"
-                  maxLength={20}
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="my-initial">头像上的字</Label>
-                <Input
-                  id="my-initial"
-                  value={myInitial}
-                  onChange={(event) =>
-                    setMyInitial([...event.target.value.trim()][0] ?? "")
-                  }
-                  placeholder="一个字或一个字母"
-                  className="w-20 text-center text-lg"
-                />
-              </div>
-              <Button type="submit" disabled={saving}>
-                保存
-              </Button>
-            </form>
-
-            <p className="mt-4 text-xs font-medium text-muted-foreground">我的颜色</p>
-            <ColorRow member={me} onPick={updateColor} />
-          </>
-        ) : (
-          <p className="mt-2 text-sm text-muted-foreground">先选好你是家里的哪一位。</p>
-        )}
-      </section>
-
-      <section className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
         <h2 className="text-sm font-semibold text-foreground">家里的成员</h2>
         <ul className="mt-3 space-y-2">
           {members.map((member) => {
