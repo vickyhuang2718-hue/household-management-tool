@@ -245,9 +245,21 @@ function InventoryPage() {
     >
       {isAdmin && edits.length > 0 && (
         <section className="mb-5 space-y-2 rounded-xl border border-border bg-card p-4">
-          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            库存改名通知
-          </h2>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              库存改名通知
+            </h2>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs text-muted-foreground"
+              onClick={() => dismissAllEdits.mutate()}
+              disabled={dismissAllEdits.isPending}
+            >
+              全部忽略
+            </Button>
+          </div>
+
           {edits.map((edit) => (
             <div
               key={edit.id}
