@@ -120,8 +120,8 @@ function MealsPage() {
           Previous
         </Button>
         <p className="text-sm font-medium">
-          {weekStart.toLocaleDateString(undefined, { day: "numeric", month: "short" })} –{" "}
-          {addDays(weekStart, 6).toLocaleDateString(undefined, {
+          {weekStart.toLocaleDateString("en-GB", { day: "numeric", month: "short" })} –{" "}
+          {addDays(weekStart, 6).toLocaleDateString("en-GB", {
             day: "numeric",
             month: "short",
           })}
@@ -147,7 +147,7 @@ function MealsPage() {
           {days.map((day) => (
             <section key={toDateKey(day)}>
               <h2 className="text-sm font-semibold text-foreground">
-                {day.toLocaleDateString(undefined, {
+                {day.toLocaleDateString("en-GB", {
                   weekday: "long",
                   day: "numeric",
                   month: "short",
