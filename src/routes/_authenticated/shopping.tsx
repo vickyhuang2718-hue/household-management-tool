@@ -19,19 +19,19 @@ import {
 } from "@/lib/household";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/shopping")({
+export const Route = createFileRoute("/_authenticated/shopping")({
   head: () => ({
     meta: [
-      { title: "Shopping List — Household Hub" },
+      { title: "采购清单 Shopping List — 家事管家" },
       {
         name: "description",
         content:
-          "Build the shopping list by hand, with suggestions from low pantry stock and this week's meals.",
+          "手动添加采购清单，并根据快用完的库存和本周菜单给出建议。中英双语显示。",
       },
-      { property: "og:title", content: "Shopping List — Household Hub" },
+      { property: "og:title", content: "采购清单 Shopping List — 家事管家" },
       {
         property: "og:description",
-        content: "Suggestions from low stock and this week's meals, added only when you choose.",
+        content: "根据库存和本周菜单给出建议，由你决定加不加。",
       },
     ],
   }),
@@ -82,7 +82,7 @@ function ShoppingPage() {
     },
     onSuccess: () => {
       invalidate();
-      toast.success("Trip finished — ticked items cleared");
+      toast.success("本次采购完成，已清掉勾选的物品 / Trip finished");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -113,8 +113,8 @@ function ShoppingPage() {
 
   return (
     <AppShell
-      title="Shopping"
-      subtitle="Add what you need — suggestions are only ever a tap away"
+      title="采购清单 Shopping"
+      subtitle="想到什么就添加，建议随手一点即可加入 · Add what you need"
     >
       <form
         className="flex gap-2"
@@ -127,16 +127,16 @@ function ShoppingPage() {
         <Input
           value={name}
           onChange={(event) => setName(event.target.value)}
-          placeholder="Add an item"
-          aria-label="Add an item"
+          placeholder="添加物品 Add an item"
+          aria-label="添加物品 Add an item"
         />
-        <Button type="submit" size="icon" aria-label="Add to list">
+        <Button type="submit" size="icon" aria-label="加入清单 Add to list">
           <Plus className="size-4" />
         </Button>
       </form>
 
       {isLoading ? (
-        <p className="mt-6 text-sm text-muted-foreground">Loading the list…</p>
+        <p className="mt-6 text-sm text-muted-foreground">正在加载清单… Loading…</p>
       ) : (
         <ul className="mt-5 space-y-2">
           {list.map((item) => (
@@ -146,7 +146,7 @@ function ShoppingPage() {
             >
               <button
                 type="button"
-                aria-label={`Tick off ${item.name}`}
+                aria-label={`买好了 ${item.name}`}
                 onClick={() => toggle.mutate(item)}
                 className={cn(
                   "flex size-9 items-center justify-center rounded-full border border-border transition-colors",
@@ -170,7 +170,7 @@ function ShoppingPage() {
           ))}
           {list.length === 0 ? (
             <li className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-              Your list is empty.
+              清单是空的 · Your list is empty.
             </li>
           ) : null}
         </ul>
@@ -183,15 +183,15 @@ function ShoppingPage() {
           onClick={() => finishTrip.mutate()}
           disabled={finishTrip.isPending}
         >
-          <Trash2 className="size-4" /> Finish trip and clear {checkedCount} ticked
+          <Trash2 className="size-4" /> 完成采购，清掉已勾选的 {checkedCount} 项 · Finish trip
         </Button>
       ) : null}
 
       <Suggestions
-        heading="Running low in the house"
+        heading="家里快用完了 · Running low"
         items={lowSuggestions.map((item) => ({
           key: item.id,
-          label: `${item.name} (${Number(item.quantity)} ${item.unit} left)`,
+          label: `${item.name} (剩 ${Number(item.quantity)} ${item.unit})`,
           name: item.name,
           category: item.category,
         }))}
@@ -199,7 +199,7 @@ function ShoppingPage() {
       />
 
       <Suggestions
-        heading="Needed for this week's meals"
+        heading="本周菜单需要 · Needed for this week's meals"
         items={missingIngredients.map((ingredient) => ({
           key: ingredient.id,
           label: ingredient.quantity

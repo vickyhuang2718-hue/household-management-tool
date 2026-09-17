@@ -10,63 +10,94 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as InventoryRouteImport } from './routes/inventory'
-import { Route as MealsRouteImport } from './routes/meals'
-import { Route as ShoppingRouteImport } from './routes/shopping'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedChoresRouteImport } from './routes/_authenticated/chores'
+import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
+import { Route as AuthenticatedMealsRouteImport } from './routes/_authenticated/meals'
+import { Route as AuthenticatedShoppingRouteImport } from './routes/_authenticated/shopping'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InventoryRoute = InventoryRouteImport.update({
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedChoresRoute = AuthenticatedChoresRouteImport.update({
+  id: '/chores',
+  path: '/chores',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInventoryRoute = AuthenticatedInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const MealsRoute = MealsRouteImport.update({
+const AuthenticatedMealsRoute = AuthenticatedMealsRouteImport.update({
   id: '/meals',
   path: '/meals',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ShoppingRoute = ShoppingRouteImport.update({
+const AuthenticatedShoppingRoute = AuthenticatedShoppingRouteImport.update({
   id: '/shopping',
   path: '/shopping',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/inventory': typeof InventoryRoute
-  '/meals': typeof MealsRoute
-  '/shopping': typeof ShoppingRoute
+  '/auth': typeof AuthRoute
+  '/chores': typeof AuthenticatedChoresRoute
+  '/inventory': typeof AuthenticatedInventoryRoute
+  '/meals': typeof AuthenticatedMealsRoute
+  '/shopping': typeof AuthenticatedShoppingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/inventory': typeof InventoryRoute
-  '/meals': typeof MealsRoute
-  '/shopping': typeof ShoppingRoute
+  '/auth': typeof AuthRoute
+  '/chores': typeof AuthenticatedChoresRoute
+  '/inventory': typeof AuthenticatedInventoryRoute
+  '/meals': typeof AuthenticatedMealsRoute
+  '/shopping': typeof AuthenticatedShoppingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/inventory': typeof InventoryRoute
-  '/meals': typeof MealsRoute
-  '/shopping': typeof ShoppingRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/chores': typeof AuthenticatedChoresRoute
+  '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
+  '/_authenticated/meals': typeof AuthenticatedMealsRoute
+  '/_authenticated/shopping': typeof AuthenticatedShoppingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/inventory' | '/meals' | '/shopping'
+  fullPaths: '/' | '/auth' | '/chores' | '/inventory' | '/meals' | '/shopping'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/inventory' | '/meals' | '/shopping'
-  id: '__root__' | '/' | '/inventory' | '/meals' | '/shopping'
+  to: '/' | '/auth' | '/chores' | '/inventory' | '/meals' | '/shopping'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/chores'
+    | '/_authenticated/inventory'
+    | '/_authenticated/meals'
+    | '/_authenticated/shopping'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  InventoryRoute: typeof InventoryRoute
-  MealsRoute: typeof MealsRoute
-  ShoppingRoute: typeof ShoppingRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -78,35 +109,72 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/inventory': {
-      id: '/inventory'
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/chores': {
+      id: '/_authenticated/chores'
+      path: '/chores'
+      fullPath: '/chores'
+      preLoaderRoute: typeof AuthenticatedChoresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/inventory': {
+      id: '/_authenticated/inventory'
       path: '/inventory'
       fullPath: '/inventory'
-      preLoaderRoute: typeof InventoryRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedInventoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/meals': {
-      id: '/meals'
+    '/_authenticated/meals': {
+      id: '/_authenticated/meals'
       path: '/meals'
       fullPath: '/meals'
-      preLoaderRoute: typeof MealsRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedMealsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/shopping': {
-      id: '/shopping'
+    '/_authenticated/shopping': {
+      id: '/_authenticated/shopping'
       path: '/shopping'
       fullPath: '/shopping'
-      preLoaderRoute: typeof ShoppingRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedShoppingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedChoresRoute: typeof AuthenticatedChoresRoute
+  AuthenticatedInventoryRoute: typeof AuthenticatedInventoryRoute
+  AuthenticatedMealsRoute: typeof AuthenticatedMealsRoute
+  AuthenticatedShoppingRoute: typeof AuthenticatedShoppingRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedChoresRoute: AuthenticatedChoresRoute,
+  AuthenticatedInventoryRoute: AuthenticatedInventoryRoute,
+  AuthenticatedMealsRoute: AuthenticatedMealsRoute,
+  AuthenticatedShoppingRoute: AuthenticatedShoppingRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  InventoryRoute: InventoryRoute,
-  MealsRoute: MealsRoute,
-  ShoppingRoute: ShoppingRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -53,6 +53,12 @@ export type ShoppingItem = {
   checked: boolean;
 };
 
+export type Profile = {
+  id: string;
+  email: string | null;
+  member_id: string | null;
+};
+
 export const SLOTS = ["breakfast", "lunch", "dinner"] as const;
 export const CATEGORIES = [
   "pantry",
@@ -64,8 +70,31 @@ export const CATEGORIES = [
 ] as const;
 export const FREQUENCIES = ["daily", "weekly", "once"] as const;
 
-export const TODDLER_DEFAULT_NOTE =
-  "Plate her portion before adding salt, spice or seasoning.";
+export const SLOT_LABELS: Record<string, string> = {
+  breakfast: "早餐",
+  lunch: "午餐",
+  dinner: "晚餐",
+};
+
+export const CATEGORY_LABELS: Record<string, string> = {
+  pantry: "干货储藏",
+  fridge: "冰箱冷藏",
+  freezer: "冷冻室",
+  cleaning: "清洁用品",
+  toiletries: "洗护用品",
+  baby: "宝宝用品",
+};
+
+export const FREQUENCY_LABELS: Record<string, string> = {
+  daily: "每天",
+  weekly: "每周",
+  once: "一次性",
+};
+
+export const TODDLER_DEFAULT_NOTE = "先盛出宝宝的那一份，再加盐、香料和其他调味。";
+
+/** Fixed locale so the server and the browser always render the same text. */
+export const LOCALE = "zh-CN";
 
 function unwrap<T>(result: { data: T | null; error: { message: string } | null }): T {
   if (result.error) throw new Error(result.error.message);
@@ -167,4 +196,32 @@ export function initials(name: string) {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? "")
     .join("");
+}
+
+export function profileQuery(userId: string | null) {
+  return queryOptions({
+    queryKey: ["profile", userId],
+    enabled: Boolean(userId),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, email, member_id")
+        .eq("id", userId!)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      return (data ?? null) as Profile | null;
+    },
+  });
+}
+
+export function formatDay(date: Date) {
+  return date.toLocaleDateString(LOCALE, {
+    month: "long",
+    day: "numeric",
+    weekday: "long",
+  });
+}
+
+export function formatShortDay(date: Date) {
+  return date.toLocaleDateString(LOCALE, { month: "numeric", day: "numeric" });
 }

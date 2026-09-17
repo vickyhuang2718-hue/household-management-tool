@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import {
   SLOTS,
+  SLOT_LABELS,
   TODDLER_DEFAULT_NOTE,
   type Meal,
   addDays,
@@ -22,19 +23,19 @@ import {
 } from "@/lib/household";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/meals")({
+export const Route = createFileRoute("/_authenticated/meals")({
   head: () => ({
     meta: [
-      { title: "Meal Plan — Household Hub" },
+      { title: "每周菜单 — 家事管家" },
       {
         name: "description",
         content:
-          "Plan breakfast, lunch and dinner for the week, with a toddler portion reminder on every meal.",
+          "安排一周的早中晚三餐，每一餐都带有宝宝那份的提醒。",
       },
-      { property: "og:title", content: "Meal Plan — Household Hub" },
+      { property: "og:title", content: "每周菜单 — 家事管家" },
       {
         property: "og:description",
-        content: "Plan the week's meals with a toddler portion reminder on every dish.",
+        content: "安排一周三餐，每道菜都带宝宝那份的提醒。",
       },
     ],
   }),
@@ -67,7 +68,7 @@ function MealsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meals"] });
       setEditing(null);
-      toast.success("Meal saved");
+      toast.success("已保存");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -90,7 +91,7 @@ function MealsPage() {
         const key = meal.meal_date;
         return key >= toDateKey(addDays(weekStart, -7)) && key < toDateKey(weekStart);
       });
-      if (source.length === 0) throw new Error("Last week has no meals to copy.");
+      if (source.length === 0) throw new Error("上周还没有安排菜单，无法复制。");
       const rows = source.map((meal) => ({
         meal_date: toDateKey(addDays(new Date(meal.meal_date), 7)),
         slot: meal.slot,
@@ -105,7 +106,7 @@ function MealsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meals"] });
-      toast.success("Last week's meals copied across");
+      toast.success("已复制上周的菜单");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -114,20 +115,20 @@ function MealsPage() {
     meals.find((meal) => meal.meal_date === toDateKey(date) && meal.slot === slot);
 
   return (
-    <AppShell title="Meal plan" subtitle="Breakfast, lunch and dinner for the week">
+    <AppShell title="每周菜单" subtitle="一周的早餐、午餐和晚餐">
       <div className="flex items-center justify-between gap-2">
         <Button variant="outline" size="sm" onClick={() => setWeekOffset((w) => w - 1)}>
-          Previous
+          上一周
         </Button>
         <p className="text-sm font-medium">
-          {weekStart.toLocaleDateString(undefined, { day: "numeric", month: "short" })} –{" "}
-          {addDays(weekStart, 6).toLocaleDateString(undefined, {
+          {weekStart.toLocaleDateString("zh-CN", { day: "numeric", month: "short" })} –{" "}
+          {addDays(weekStart, 6).toLocaleDateString("zh-CN", {
             day: "numeric",
             month: "short",
           })}
         </p>
         <Button variant="outline" size="sm" onClick={() => setWeekOffset((w) => w + 1)}>
-          Next
+          下一周
         </Button>
       </div>
 
@@ -137,17 +138,17 @@ function MealsPage() {
         onClick={() => copyWeek.mutate()}
         disabled={copyWeek.isPending}
       >
-        <CopyPlus className="size-4" /> Copy last week into this week
+        <CopyPlus className="size-4" /> 把上周的菜单复制过来
       </Button>
 
       {isLoading ? (
-        <p className="mt-8 text-sm text-muted-foreground">Loading the plan…</p>
+        <p className="mt-8 text-sm text-muted-foreground">正在加载菜单…</p>
       ) : (
         <div className="mt-6 space-y-5">
           {days.map((day) => (
             <section key={toDateKey(day)}>
               <h2 className="text-sm font-semibold text-foreground">
-                {day.toLocaleDateString(undefined, {
+                {day.toLocaleDateString("zh-CN", {
                   weekday: "long",
                   day: "numeric",
                   month: "short",
@@ -190,7 +191,7 @@ function MealsPage() {
                           onClick={() => setEditing({ date: toDateKey(day), slot })}
                         >
                           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                            {slot}
+                            {SLOT_LABELS[slot] ?? slot}
                           </p>
                           <p
                             className={cn(
@@ -198,7 +199,7 @@ function MealsPage() {
                               meal ? "text-foreground" : "text-muted-foreground",
                             )}
                           >
-                            {meal?.title ?? "Tap to plan"}
+                            {meal?.title ?? "点一下来安排"}
                           </p>
                           {meal?.notes ? (
                             <p className="mt-1 text-xs text-muted-foreground">
@@ -209,7 +210,7 @@ function MealsPage() {
                         {meal ? (
                           <button
                             type="button"
-                            aria-label="Mark cooked"
+                            aria-label="标记为已做"
                             onClick={() => toggleCooked.mutate(meal)}
                             className={cn(
                               "flex size-9 items-center justify-center rounded-full border border-border transition-colors",
@@ -231,7 +232,7 @@ function MealsPage() {
                           </p>
                           {ingredients.filter((i) => i.meal_id === meal.id).length > 0 ? (
                             <p className="mt-2 text-xs text-muted-foreground">
-                              Needs:{" "}
+                              需要：{" "}
                               {ingredients
                                 .filter((i) => i.meal_id === meal.id)
                                 .map((i) =>
@@ -283,20 +284,20 @@ function MealForm({
       }}
     >
       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-        {slot}
+        {SLOT_LABELS[slot] ?? slot}
       </p>
       <div className="space-y-2">
-        <Label htmlFor={`meal-${slot}`}>Dish</Label>
+        <Label htmlFor={`meal-${slot}`}>菜名</Label>
         <Input
           id={`meal-${slot}`}
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          placeholder="e.g. Dal with rice"
+          placeholder="例如：番茄炒蛋配米饭"
           required
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`notes-${slot}`}>Notes</Label>
+        <Label htmlFor={`notes-${slot}`}>备注</Label>
         <Textarea
           id={`notes-${slot}`}
           value={notes}
@@ -305,7 +306,7 @@ function MealForm({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={`toddler-${slot}`}>Toddler portion</Label>
+        <Label htmlFor={`toddler-${slot}`}>宝宝那一份</Label>
         <Textarea
           id={`toddler-${slot}`}
           value={toddlerNote}
@@ -315,10 +316,10 @@ function MealForm({
       </div>
       <div className="flex gap-2">
         <Button type="submit" disabled={pending} className="flex-1">
-          Save
+          保存
         </Button>
         <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
+          取消
         </Button>
       </div>
     </form>

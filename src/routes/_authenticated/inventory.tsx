@@ -16,22 +16,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { CATEGORIES, type InventoryItem, inventoryQuery } from "@/lib/household";
+import {
+  CATEGORIES,
+  CATEGORY_LABELS,
+  type InventoryItem,
+  inventoryQuery,
+} from "@/lib/household";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/inventory")({
+export const Route = createFileRoute("/_authenticated/inventory")({
   head: () => ({
     meta: [
-      { title: "Pantry & Supplies — Household Hub" },
+      { title: "家中库存 — 家事管家" },
       {
         name: "description",
         content:
-          "Track what is in the pantry, fridge, freezer and cupboards, and see what is running low.",
+          "记录储藏室、冰箱、冷冻室和柜子里的存货，快用完时一眼看到。",
       },
-      { property: "og:title", content: "Pantry & Supplies — Household Hub" },
+      { property: "og:title", content: "家中库存 — 家事管家" },
       {
         property: "og:description",
-        content: "Track household stock and spot what is running low.",
+        content: "记录家中存货，随时看到快用完的东西。",
       },
     ],
   }),
@@ -70,7 +75,7 @@ function InventoryPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventory_items"] });
       setShowForm(false);
-      toast.success("Item added");
+      toast.success("已添加");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -81,11 +86,11 @@ function InventoryPage() {
 
   return (
     <AppShell
-      title="Pantry & supplies"
-      subtitle={lowCount > 0 ? `${lowCount} running low` : "Everything is stocked"}
+      title="家中库存"
+      subtitle={lowCount > 0 ? `有 ${lowCount} 样快用完了` : "存货都还充足"}
     >
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading the cupboards…</p>
+        <p className="text-sm text-muted-foreground">正在加载库存…</p>
       ) : (
         <div className="space-y-6">
           {CATEGORIES.map((category) => {
@@ -94,7 +99,7 @@ function InventoryPage() {
             return (
               <section key={category}>
                 <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  {category}
+                  {CATEGORY_LABELS[category] ?? category}
                 </h2>
                 <ul className="mt-3 space-y-2">
                   {group.map((item) => {
@@ -111,11 +116,11 @@ function InventoryPage() {
                           <p className="flex items-center gap-2 font-medium text-foreground">
                             {item.name}
                             {low ? (
-                              <TriangleAlert className="size-4 text-clay" aria-label="Running low" />
+                              <TriangleAlert className="size-4 text-clay" aria-label="快用完了" />
                             ) : null}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {Number(item.quantity)} {item.unit} · low at{" "}
+                            {Number(item.quantity)} {item.unit} · 低于{" "}
                             {Number(item.low_threshold)}
                           </p>
                         </div>
@@ -123,7 +128,7 @@ function InventoryPage() {
                           <Button
                             variant="outline"
                             size="icon"
-                            aria-label={`Remove one ${item.name}`}
+                            aria-label={`减少一个 ${item.name}`}
                             onClick={() => adjust.mutate({ item, delta: -1 })}
                           >
                             <Minus className="size-4" />
@@ -131,7 +136,7 @@ function InventoryPage() {
                           <Button
                             variant="outline"
                             size="icon"
-                            aria-label={`Add one ${item.name}`}
+                            aria-label={`增加一个 ${item.name}`}
                             onClick={() => adjust.mutate({ item, delta: 1 })}
                           >
                             <Plus className="size-4" />
@@ -155,7 +160,7 @@ function InventoryPage() {
         />
       ) : (
         <Button className="mt-8 w-full" size="lg" onClick={() => setShowForm(true)}>
-          <Plus className="size-4" /> Add an item
+          <Plus className="size-4" /> 添加物品
         </Button>
       )}
     </AppShell>
@@ -198,9 +203,9 @@ function ItemForm({
         });
       }}
     >
-      <h2 className="text-lg font-semibold">New item</h2>
+      <h2 className="text-lg font-semibold">新物品</h2>
       <div className="space-y-2">
-        <Label htmlFor="item-name">Name</Label>
+        <Label htmlFor="item-name">名称</Label>
         <Input
           id="item-name"
           value={name}
@@ -209,7 +214,7 @@ function ItemForm({
         />
       </div>
       <div className="space-y-2">
-        <Label>Where it lives</Label>
+        <Label>放在哪里</Label>
         <Select value={category} onValueChange={setCategory}>
           <SelectTrigger>
             <SelectValue />
@@ -217,7 +222,7 @@ function ItemForm({
           <SelectContent>
             {CATEGORIES.map((option) => (
               <SelectItem key={option} value={option}>
-                {option}
+                {CATEGORY_LABELS[option] ?? option}
               </SelectItem>
             ))}
           </SelectContent>
@@ -225,7 +230,7 @@ function ItemForm({
       </div>
       <div className="grid grid-cols-3 gap-3">
         <div className="space-y-2">
-          <Label htmlFor="item-qty">Have</Label>
+          <Label htmlFor="item-qty">现有</Label>
           <Input
             id="item-qty"
             inputMode="decimal"
@@ -234,7 +239,7 @@ function ItemForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="item-unit">Unit</Label>
+          <Label htmlFor="item-unit">单位</Label>
           <Input
             id="item-unit"
             value={unit}
@@ -242,7 +247,7 @@ function ItemForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="item-low">Low at</Label>
+          <Label htmlFor="item-low">低于</Label>
           <Input
             id="item-low"
             inputMode="decimal"
@@ -253,10 +258,10 @@ function ItemForm({
       </div>
       <div className="flex gap-2">
         <Button type="submit" disabled={pending} className="flex-1">
-          Add item
+          添加
         </Button>
         <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
+          取消
         </Button>
       </div>
     </form>
