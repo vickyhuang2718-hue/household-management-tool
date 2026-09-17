@@ -118,11 +118,41 @@ function InventoryPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const deleteItem = useMutation({
+    mutationFn: async (item: InventoryItem) => {
+      const { error } = await supabase
+        .from("inventory_items")
+        .update({ deleted: true } as never)
+        .eq("id", item.id);
+      if (error) throw new Error(error.message);
+      const { error: logError } = await supabase.from("inventory_edits").insert({
+        item_id: item.id,
+        edited_by: userId,
+        editor_name: myName,
+        before_name: item.name,
+        after_name: item.name,
+        action: "delete",
+      } as never);
+      if (logError) throw new Error(logError.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inventory_items"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory_edits"] });
+      setEditing(null);
+      toast.success("已删除");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const undoEdit = useMutation({
     mutationFn: async (edit: InventoryEdit) => {
       const { error } = await supabase
         .from("inventory_items")
-        .update({ name: edit.before_name })
+        .update(
+          (edit.action === "delete"
+            ? { deleted: false }
+            : { name: edit.before_name }) as never,
+        )
         .eq("id", edit.item_id);
       if (error) throw new Error(error.message);
       const { error: markError } = await supabase
@@ -131,10 +161,10 @@ function InventoryPage() {
         .eq("id", edit.id);
       if (markError) throw new Error(markError.message);
     },
-    onSuccess: () => {
+    onSuccess: (_data, edit) => {
       queryClient.invalidateQueries({ queryKey: ["inventory_items"] });
       queryClient.invalidateQueries({ queryKey: ["inventory_edits"] });
-      toast.success("已撤销这次改名");
+      toast.success(edit.action === "delete" ? "已恢复这样东西" : "已撤销这次改名");
     },
     onError: (error: Error) => toast.error(error.message),
   });
