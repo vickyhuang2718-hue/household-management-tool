@@ -12,3 +12,4 @@
 - [x] Shopping list shown in both Chinese and English
 - [ ] Edit a chore (name, assignee, note, recurrence, due date) in the details pop-up
 - [ ] Admin sees every edit and can undo it with one click
+- [ ] Remove the 宝宝 family member
