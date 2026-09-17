@@ -297,15 +297,16 @@ export const COLOR_LABELS: Record<string, string> = {
 
 export const choreEditsQuery = queryOptions({
   queryKey: ["chore_edits"],
-  queryFn: async () =>
-    unwrap<ChoreEdit[]>(
-      await supabase
-        .from("chore_edits")
-        .select("*")
-        .eq("dismissed", false)
-        .order("created_at", { ascending: false })
-        .limit(20),
-    ),
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("chore_edits")
+      .select("*")
+      .eq("dismissed", false)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as ChoreEdit[];
+  },
 });
 
 export function formatDay(date: Date) {
