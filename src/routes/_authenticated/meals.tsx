@@ -1,8 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ChefHat, CopyPlus, Plus, Trash2 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { ChefHat, CopyPlus, Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { getCookingGuide } from "@/lib/cooking.functions";
 
 import { AppShell } from "@/components/household/AppShell";
 import { Button } from "@/components/ui/button";
