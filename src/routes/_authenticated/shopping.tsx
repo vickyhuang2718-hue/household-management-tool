@@ -17,6 +17,7 @@ import {
   shoppingQuery,
   toDateKey,
 } from "@/lib/household";
+import type { ShoppingItem } from "@/lib/household";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/shopping")({
@@ -248,6 +249,18 @@ function ShoppingPage() {
     </AppShell>
   );
 }
+
+const upcomingShoppingQuery = queryOptions({
+  queryKey: ["shopping_items", "upcoming"],
+  queryFn: async () =>
+    unwrap<ShoppingItem[]>(
+      await supabase
+        .from("shopping_items")
+        .select("*")
+        .gt("buy_after", toDateKey(new Date()))
+        .order("buy_after"),
+    ),
+});
 
 function Suggestions({
   heading,
