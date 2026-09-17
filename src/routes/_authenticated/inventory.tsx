@@ -306,8 +306,39 @@ function InventoryPage() {
                         )}
                       >
                         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-                          <p className="flex min-w-0 items-center gap-2 font-medium text-foreground">
+                          <p className="flex min-w-0 flex-wrap items-center gap-2 font-medium text-foreground">
                             <span className="truncate">{item.name}</span>
+                            <Select
+                              value={item.status}
+                              onValueChange={(value) =>
+                                setStatus.mutate({
+                                  item,
+                                  status: value as StockStatus,
+                                })
+                              }
+                            >
+                              <SelectTrigger
+                                aria-label="库存状态"
+                                className={cn(
+                                  "h-7 w-auto shrink-0 gap-1 rounded-full border px-2.5 text-xs",
+                                  item.status === "low"
+                                    ? "border-transparent bg-ochre text-ochre-foreground"
+                                    : item.status === "out"
+                                      ? "border-transparent bg-clay text-clay-foreground"
+                                      : "border-transparent bg-primary text-primary-foreground",
+                                  "[&>svg]:opacity-80",
+                                )}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {STOCK_STATUSES.map((option) => (
+                                  <SelectItem key={option} value={option}>
+                                    {STOCK_STATUS_LABELS[option]}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                             <button
                               type="button"
                               onClick={() =>
@@ -319,27 +350,6 @@ function InventoryPage() {
                               <Pencil className="size-3.5" />
                             </button>
                           </p>
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            {STOCK_STATUSES.map((option) => (
-                              <button
-                                key={option}
-                                type="button"
-                                onClick={() => setStatus.mutate({ item, status: option })}
-                                className={cn(
-                                  "rounded-full border px-2.5 py-1 text-xs transition-colors",
-                                  item.status === option
-                                    ? option === "low"
-                                      ? "border-transparent bg-ochre text-ochre-foreground"
-                                      : option === "out"
-                                        ? "border-transparent bg-clay text-clay-foreground"
-                                        : "border-transparent bg-primary text-primary-foreground"
-                                    : "border-border text-muted-foreground hover:bg-muted",
-                                )}
-                              >
-                                {STOCK_STATUS_LABELS[option]}
-                              </button>
-                            ))}
-                          </div>
                         </div>
 
                         {item.note && editing !== item.id ? (
