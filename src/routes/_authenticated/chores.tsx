@@ -18,6 +18,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import {
   FREQUENCIES,
+  FREQUENCY_LABELS,
   type Chore,
   choresQuery,
   initials,
@@ -32,16 +33,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/chores")({
   head: () => ({
     meta: [
-      { title: "Chore Board — Household Hub" },
+      { title: "家务板 — 家事管家" },
       {
         name: "description",
         content:
-          "Shared chore board for the whole household: see what is due today, who it belongs to and tick it off.",
+          "全家共用的家务板：今天有哪些要做、归谁负责，做完一点即可勾掉。",
       },
-      { property: "og:title", content: "Chore Board — Household Hub" },
+      { property: "og:title", content: "家务板 — 家事管家" },
       {
         property: "og:description",
-        content: "See what is due today, who it belongs to and tick it off.",
+        content: "今天要做什么、归谁负责，做完勾掉。",
       },
     ],
   }),
@@ -76,7 +77,7 @@ function ChoreBoard() {
     },
     onSuccess: (next) => {
       queryClient.invalidateQueries({ queryKey: ["chores"] });
-      toast.success(next ? "Done — back on the board next time" : "Done and cleared");
+      toast.success(next ? "完成啦，下次到期会再出现" : "完成，已从板上移除");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -94,7 +95,7 @@ function ChoreBoard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["chores"] });
       setShowForm(false);
-      toast.success("Chore added");
+      toast.success("家务已添加");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -106,7 +107,7 @@ function ChoreBoard() {
 
   return (
     <AppShell
-      title="Today at home"
+      title="今天的家事"
       subtitle={new Date().toLocaleDateString("en-GB", {
         weekday: "long",
         day: "numeric",
@@ -122,7 +123,7 @@ function ChoreBoard() {
             filter === null ? "bg-primary text-primary-foreground" : "bg-card",
           )}
         >
-          Everyone
+          全家
         </button>
         {members.map((member) => (
           <button
@@ -148,24 +149,24 @@ function ChoreBoard() {
       </div>
 
       {isLoading ? (
-        <p className="mt-8 text-sm text-muted-foreground">Loading the board…</p>
+        <p className="mt-8 text-sm text-muted-foreground">正在加载家务板…</p>
       ) : (
         <div className="mt-6 space-y-7">
           <ChoreGroup
-            heading="Overdue"
+            heading="已逾期"
             tone="destructive"
             chores={overdue}
             members={members}
             onComplete={(chore) => complete.mutate(chore)}
           />
           <ChoreGroup
-            heading="Today"
+            heading="今天"
             chores={today}
             members={members}
             onComplete={(chore) => complete.mutate(chore)}
           />
           <ChoreGroup
-            heading="Coming up"
+            heading="接下来"
             chores={upcoming}
             members={members}
             onComplete={(chore) => complete.mutate(chore)}
@@ -182,7 +183,7 @@ function ChoreBoard() {
         />
       ) : (
         <Button className="mt-8 w-full" size="lg" onClick={() => setShowForm(true)}>
-          <Plus className="size-4" /> Add a chore
+          <Plus className="size-4" /> 添加家务
         </Button>
       )}
     </AppShell>
@@ -227,7 +228,7 @@ function ChoreGroup({
             >
               <button
                 type="button"
-                aria-label={`Mark ${chore.title} done`}
+                aria-label={`把「${chore.title}」标记为完成`}
                 onClick={() => onComplete(chore)}
                 className="flex size-10 shrink-0 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:bg-primary hover:text-primary-foreground active:scale-95"
               >
@@ -236,7 +237,7 @@ function ChoreGroup({
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium text-foreground">{chore.title}</p>
                 <p className="text-xs text-muted-foreground">
-                  {member?.name ?? "Unassigned"} ·{" "}
+                  {member?.name ?? "未分配"} ·{" "}
                   {parseDateKey(chore.due_date).toLocaleDateString("en-GB", {
                     weekday: "short",
                     day: "numeric",
@@ -291,23 +292,23 @@ function ChoreForm({
         onSubmit({ title: title.trim(), member_id: memberId, frequency, due_date: dueDate });
       }}
     >
-      <h2 className="text-lg font-semibold">New chore</h2>
+      <h2 className="text-lg font-semibold">新的家务</h2>
       <div className="space-y-2">
-        <Label htmlFor="chore-title">What needs doing</Label>
+        <Label htmlFor="chore-title">要做什么</Label>
         <Input
           id="chore-title"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          placeholder="e.g. Mop the kitchen"
+          placeholder="例如：拖厨房地板"
           required
         />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label>Who</Label>
+          <Label>谁来做</Label>
           <Select value={memberId} onValueChange={setMemberId}>
             <SelectTrigger>
-              <SelectValue placeholder="Pick someone" />
+              <SelectValue placeholder="选一个人" />
             </SelectTrigger>
             <SelectContent>
               {members.map((member) => (
@@ -319,7 +320,7 @@ function ChoreForm({
           </Select>
         </div>
         <div className="space-y-2">
-          <Label>How often</Label>
+          <Label>多久一次</Label>
           <Select value={frequency} onValueChange={setFrequency}>
             <SelectTrigger>
               <SelectValue />
@@ -327,7 +328,7 @@ function ChoreForm({
             <SelectContent>
               {FREQUENCIES.map((option) => (
                 <SelectItem key={option} value={option}>
-                  {option === "once" ? "One-off" : option}
+                  {FREQUENCY_LABELS[option] ?? option}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -335,7 +336,7 @@ function ChoreForm({
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="chore-due">First due</Label>
+        <Label htmlFor="chore-due">第一次到期</Label>
         <Input
           id="chore-due"
           type="date"
@@ -345,10 +346,10 @@ function ChoreForm({
       </div>
       <div className="flex gap-2">
         <Button type="submit" disabled={pending} className="flex-1">
-          Add chore
+          添加
         </Button>
         <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
+          取消
         </Button>
       </div>
     </form>
