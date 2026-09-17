@@ -98,15 +98,28 @@ function InventoryPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  const lowCount = items.filter(
-    (item) => Number(item.quantity) <= Number(item.low_threshold),
-  ).length;
+  const lowCount = items.filter((item) => item.status !== "enough").length;
+
+  const lastReview = items.reduce<string | null>((latest, item) => {
+    if (!item.reviewed_at) return latest;
+    return !latest || item.reviewed_at > latest ? item.reviewed_at : latest;
+  }, null);
 
   return (
     <AppShell
       title="家中库存"
-      subtitle={lowCount > 0 ? `有 ${lowCount} 样快用完了` : "存货都还充足"}
+      subtitle={lowCount > 0 ? `有 ${lowCount} 样需要补货` : "存货都还充足"}
     >
+      <p className="mb-5 rounded-xl border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
+        上次盘点 Last review：
+        {lastReview
+          ? new Date(lastReview).toLocaleDateString(LOCALE, {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
+          : "还没有记录"}
+      </p>
       {isLoading ? (
         <p className="text-sm text-muted-foreground">正在加载库存…</p>
       ) : (
@@ -121,49 +134,72 @@ function InventoryPage() {
                 </h2>
                 <ul className="mt-3 space-y-2">
                   {group.map((item) => {
-                    const low = Number(item.quantity) <= Number(item.low_threshold);
+                    const low = item.status !== "enough";
                     return (
                       <li
                         key={item.id}
                         className={cn(
-                          "flex items-center gap-3 rounded-xl border border-border bg-card p-3 shadow-sm",
+                          "rounded-xl border border-border bg-card p-3 shadow-sm",
                           low && "border-clay/50",
                         )}
                       >
-                        <div className="min-w-0 flex-1">
-                          <p className="flex items-center gap-2 font-medium text-foreground">
-                            {item.name}
-                            {low ? (
-                              <TriangleAlert className="size-4 text-clay" aria-label="快用完了" />
-                            ) : null}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {Number(item.quantity)} {item.unit} · 低于{" "}
-                            {Number(item.low_threshold)}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="flex items-center gap-2 font-medium text-foreground">
+                              {item.name}
+                              {item.status === "out" ? (
+                                <TriangleAlert
+                                  className="size-4 text-clay"
+                                  aria-label="没有了"
+                                />
+                              ) : null}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {Number(item.quantity)} {item.unit} · 低于{" "}
+                              {Number(item.low_threshold)}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              aria-label={`减少一个 ${item.name}`}
+                              onClick={() => adjust.mutate({ item, delta: -1 })}
+                            >
+                              <Minus className="size-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              aria-label={`增加一个 ${item.name}`}
+                              onClick={() => adjust.mutate({ item, delta: 1 })}
+                            >
+                              <Plus className="size-4" />
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            aria-label={`减少一个 ${item.name}`}
-                            onClick={() => adjust.mutate({ item, delta: -1 })}
-                          >
-                            <Minus className="size-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            aria-label={`增加一个 ${item.name}`}
-                            onClick={() => adjust.mutate({ item, delta: 1 })}
-                          >
-                            <Plus className="size-4" />
-                          </Button>
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {STOCK_STATUSES.map((option) => (
+                            <button
+                              key={option}
+                              type="button"
+                              onClick={() => setStatus.mutate({ item, status: option })}
+                              className={cn(
+                                "rounded-full border border-border px-3 py-1 text-xs transition-colors",
+                                item.status === option
+                                  ? "border-transparent bg-primary text-primary-foreground"
+                                  : "text-muted-foreground hover:bg-muted",
+                              )}
+                            >
+                              {STOCK_STATUS_LABELS[option]}
+                            </button>
+                          ))}
                         </div>
                       </li>
                     );
                   })}
                 </ul>
+
               </section>
             );
           })}
