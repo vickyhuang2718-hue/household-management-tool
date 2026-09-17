@@ -770,16 +770,6 @@ function ChoreDetailBody({
             {chore.notes ? chore.notes : "没有备注"}
           </dd>
         </div>
-        {next && (
-          <p className="text-xs text-muted-foreground">
-            勾掉后，下一次会安排在{" "}
-            {parseDateKey(next).toLocaleDateString("zh-CN", {
-              day: "numeric",
-              month: "long",
-            })}{" "}
-            （待认领）。
-          </p>
-        )}
       </dl>
       <div className="flex gap-2">
         <Button className="flex-1" disabled={completing} onClick={() => onComplete(chore)}>
