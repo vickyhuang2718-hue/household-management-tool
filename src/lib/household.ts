@@ -124,6 +124,30 @@ export type ChoreFields = {
   due_date: string;
 };
 
+export type RecentCompletion = {
+  id: string;
+  chore_id: string;
+  member_id: string | null;
+  completed_on: string;
+  created_at: string;
+  chore: { title: string } | null;
+};
+
+/** Completions logged in the last 10 hours, newest first. */
+export const recentCompletionsQuery = queryOptions({
+  queryKey: ["chore_completions", "recent"],
+  queryFn: async () => {
+    const since = new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await supabase
+      .from("chore_completions")
+      .select("id, chore_id, member_id, completed_on, created_at, chore:chores(title)")
+      .gte("created_at", since)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as RecentCompletion[];
+  },
+});
+
 export type ChoreEdit = {
   id: string;
   chore_id: string;

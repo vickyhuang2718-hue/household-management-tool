@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Check, Pencil, Plus, Undo2, X } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Pencil, Plus, Undo2, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -30,12 +30,14 @@ import {
   type Chore,
   type ChoreEdit,
   type ChoreFields,
+  type RecentCompletion,
   choreEditsQuery,
   choresQuery,
   isAdminQuery,
   memberBadge,
   memberToneClass,
   membersQuery,
+  recentCompletionsQuery,
   repeatAfter,
   parseDateKey,
   profileQuery,
@@ -66,10 +68,12 @@ function ChoreBoard() {
   const queryClient = useQueryClient();
   const { data: members = [] } = useQuery(membersQuery);
   const { data: chores = [], isLoading } = useQuery(choresQuery);
+  const { data: recent = [] } = useQuery(recentCompletionsQuery);
   const [filter, setFilter] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [selected, setSelected] = useState<Chore | null>(null);
   const [repeatFor, setRepeatFor] = useState<Chore | null>(null);
+  const [showRecent, setShowRecent] = useState(false);
   const userId = useCurrentUserId();
   const { data: profile } = useQuery(profileQuery(userId));
   const myMemberId = profile?.member_id ?? null;
@@ -102,6 +106,7 @@ function ChoreBoard() {
     },
     onSuccess: (chore) => {
       queryClient.invalidateQueries({ queryKey: ["chores"] });
+      queryClient.invalidateQueries({ queryKey: ["chore_completions"] });
       const next = repeatAfter(todayKey, chore.frequency);
       if (next) {
         setRepeatFor(chore);
@@ -389,6 +394,12 @@ function ChoreBoard() {
             onComplete={(chore) => complete.mutate(chore)}
             onOpen={setSelected}
           />
+          <RecentSection
+            completions={recent}
+            members={members}
+            open={showRecent}
+            onToggle={() => setShowRecent((value) => !value)}
+          />
         </div>
       )}
 
@@ -445,6 +456,71 @@ function ChoreBoard() {
         </Button>
       )}
     </AppShell>
+  );
+}
+
+function timeAgo(iso: string) {
+  const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (minutes < 1) return "刚刚";
+  if (minutes < 60) return `${minutes} 分钟前`;
+  return `${Math.floor(minutes / 60)} 小时前`;
+}
+
+function RecentSection({
+  completions,
+  members,
+  open,
+  onToggle,
+}: {
+  completions: RecentCompletion[];
+  members: { id: string; name: string; color: string; initial: string }[];
+  open: boolean;
+  onToggle: () => void;
+}) {
+  if (completions.length === 0) return null;
+
+  return (
+    <section>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground"
+      >
+        {open ? (
+          <ChevronDown className="size-4" />
+        ) : (
+          <ChevronRight className="size-4" />
+        )}
+        刚做完 · {completions.length} 件（近 10 小时）
+      </button>
+      {open && (
+        <ul className="mt-3 space-y-2">
+          {completions.map((entry) => {
+            const member = members.find((m) => m.id === entry.member_id);
+            return (
+              <li
+                key={entry.id}
+                className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-3 opacity-80"
+              >
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  <Check className="size-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium line-through decoration-border">
+                    {entry.chore?.title ?? "家务"}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {member ? `${member.name} · ` : ""}
+                    {timeAgo(entry.created_at)}
+                  </p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }
 
