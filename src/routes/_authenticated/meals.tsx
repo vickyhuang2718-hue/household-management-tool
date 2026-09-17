@@ -247,6 +247,20 @@ function MealsPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const dishLibrary: DishDraft[] = (() => {
+    const map = new Map<string, DishDraft>();
+    for (const dish of dishes) {
+      const key = dish.name.trim();
+      if (!key) continue;
+      map.set(key, {
+        name: key,
+        notes: dish.notes ?? "",
+        baby_tag: dish.baby_tag,
+      });
+    }
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
+  })();
+
   const findMeal = (date: Date, slot: string) =>
     meals.find((meal) => meal.meal_date === toDateKey(date) && meal.slot === slot);
 
