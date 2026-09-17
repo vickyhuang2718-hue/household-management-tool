@@ -42,6 +42,16 @@ export type MealIngredient = {
   quantity: string | null;
 };
 
+export type StockStatus = "enough" | "low" | "out";
+
+export const STOCK_STATUSES: StockStatus[] = ["enough", "low", "out"];
+
+export const STOCK_STATUS_LABELS: Record<StockStatus, string> = {
+  enough: "还够用",
+  low: "快用完 · 可以买",
+  out: "没有了 · 马上补",
+};
+
 export type InventoryItem = {
   id: string;
   name: string;
@@ -49,7 +59,10 @@ export type InventoryItem = {
   quantity: number;
   unit: string;
   low_threshold: number;
+  status: StockStatus;
+  reviewed_at: string;
 };
+
 
 export type ShoppingItem = {
   id: string;
