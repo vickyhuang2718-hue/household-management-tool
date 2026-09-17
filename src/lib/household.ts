@@ -176,8 +176,9 @@ export const inventoryQuery = queryOptions({
   queryKey: ["inventory_items"],
   queryFn: async () =>
     unwrap<InventoryItem[]>(
-      await supabase.from("inventory_items").select("*").order("name"),
+      (await supabase.from("inventory_items").select("*").order("name")) as never,
     ),
+
 });
 
 export const shoppingQuery = queryOptions({
