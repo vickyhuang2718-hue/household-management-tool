@@ -116,7 +116,7 @@ function ChoreBoard() {
   return (
     <AppShell
       title="今天的家事"
-      subtitle={new Date().toLocaleDateString("en-GB", {
+      subtitle={new Date().toLocaleDateString("zh-CN", {
         weekday: "long",
         day: "numeric",
         month: "long",
@@ -246,7 +246,7 @@ function ChoreGroup({
                 <p className="truncate font-medium text-foreground">{chore.title}</p>
                 <p className="text-xs text-muted-foreground">
                   {member?.name ?? "未分配"} ·{" "}
-                  {parseDateKey(chore.due_date).toLocaleDateString("en-GB", {
+                  {parseDateKey(chore.due_date).toLocaleDateString("zh-CN", {
                     weekday: "short",
                     day: "numeric",
                     month: "short",
