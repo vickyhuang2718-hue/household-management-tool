@@ -147,6 +147,22 @@ function ShoppingPage() {
 
   const checkedCount = list.filter((item) => item.checked).length;
 
+  const suggestionPool = Array.from(
+    new Set(
+      [...inventory, ...list, ...upcoming]
+        .map((entry) => entry.name.trim())
+        .filter(Boolean),
+    ),
+  );
+  const query = name.trim().toLowerCase();
+  const suggestions =
+    query.length === 0
+      ? []
+      : suggestionPool
+          .filter((candidate) => candidate.toLowerCase() !== query)
+          .filter((candidate) => candidate.toLowerCase().includes(query))
+          .slice(0, 6);
+
   return (
     <AppShell
       title="采购清单 Shopping"
@@ -160,12 +176,30 @@ function ShoppingPage() {
           addItem.mutate({ name: name.trim() });
         }}
       >
-        <Input
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="添加物品 Add an item"
-          aria-label="添加物品 Add an item"
-        />
+        <div className="relative min-w-0 flex-1">
+          <Input
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="添加物品 Add an item"
+            aria-label="添加物品 Add an item"
+            autoComplete="off"
+          />
+          {suggestions.length > 0 ? (
+            <ul className="absolute inset-x-0 top-full z-20 mt-1 overflow-hidden rounded-md border bg-popover shadow-md">
+              {suggestions.map((suggestion) => (
+                <li key={suggestion}>
+                  <button
+                    type="button"
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-accent"
+                    onClick={() => setName(suggestion)}
+                  >
+                    {suggestion}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
         <Button type="submit" size="icon" aria-label="加入清单 Add to list">
           <Plus className="size-4" />
         </Button>
