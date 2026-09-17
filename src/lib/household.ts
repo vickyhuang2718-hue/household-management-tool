@@ -13,6 +13,21 @@ export type Member = {
 export type HouseholdSettings = {
   id: string;
   name: string;
+  join_key: string;
+};
+
+export type JoinRequest = {
+  id: string;
+  user_id: string;
+  display_name: string;
+  status: string;
+  created_at: string;
+};
+
+export type OnboardingState = {
+  household_id: string | null;
+  household_name: string | null;
+  join_status: string | null;
 };
 
 export type Chore = {
@@ -98,6 +113,7 @@ export type Profile = {
   id: string;
   email: string | null;
   member_id: string | null;
+  household_id: string | null;
 };
 
 export const SLOTS = ["breakfast", "lunch", "dinner"] as const;
@@ -245,6 +261,10 @@ export const memberToneClass: Record<string, string> = {
   clay: "bg-clay text-clay-foreground",
   ochre: "bg-ochre text-ochre-foreground",
   plum: "bg-plum text-plum-foreground",
+  denim: "bg-denim text-denim-foreground",
+  rose: "bg-rose text-rose-foreground",
+  olive: "bg-olive text-olive-foreground",
+  stone: "bg-stone text-stone-foreground",
 };
 
 export function initials(name: string) {
@@ -262,7 +282,7 @@ export function profileQuery(userId: string | null) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, email, member_id")
+        .select("id, email, member_id, household_id")
         .eq("id", userId!)
         .maybeSingle();
       if (error) throw new Error(error.message);
@@ -272,15 +292,40 @@ export function profileQuery(userId: string | null) {
 }
 
 export const householdQuery = queryOptions({
-  queryKey: ["household_settings"],
+  queryKey: ["households"],
   queryFn: async () => {
     const { data, error } = await supabase
-      .from("household_settings")
-      .select("id, name")
+      .from("households")
+      .select("id, name, join_key")
       .limit(1)
       .maybeSingle();
     if (error) throw new Error(error.message);
     return (data ?? null) as HouseholdSettings | null;
+  },
+});
+
+export const onboardingQuery = queryOptions({
+  queryKey: ["onboarding_state"],
+  queryFn: async () => {
+    const { data, error } = await supabase.rpc("my_onboarding_state");
+    if (error) throw new Error(error.message);
+    const row = (data as OnboardingState[] | null)?.[0] ?? null;
+    return (
+      row ?? { household_id: null, household_name: null, join_status: null }
+    );
+  },
+});
+
+export const joinRequestsQuery = queryOptions({
+  queryKey: ["join_requests"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("join_requests")
+      .select("id, user_id, display_name, status, created_at")
+      .eq("status", "pending")
+      .order("created_at", { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as JoinRequest[];
   },
 });
 
@@ -308,13 +353,26 @@ export function memberBadge(member: { initial?: string; name: string }) {
   return [...member.name.trim()][0] ?? "?";
 }
 
-export const COLOR_CHOICES = ["sage", "clay", "ochre", "plum"] as const;
+export const COLOR_CHOICES = [
+  "sage",
+  "clay",
+  "ochre",
+  "plum",
+  "denim",
+  "rose",
+  "olive",
+  "stone",
+] as const;
 
 export const COLOR_LABELS: Record<string, string> = {
   sage: "青绿 Sage",
   clay: "陶土 Clay",
   ochre: "赭黄 Ochre",
   plum: "梅紫 Plum",
+  denim: "靛蓝 Denim",
+  rose: "玫瑰 Rose",
+  olive: "橄榄 Olive",
+  stone: "石灰 Stone",
 };
 
 export type InventoryEdit = {

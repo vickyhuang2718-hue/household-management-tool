@@ -1,0 +1,14 @@
+REVOKE EXECUTE ON FUNCTION public.current_household_id() FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.is_household_admin() FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.create_household(text, text) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.request_join_household(text, text) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.resolve_join_request(uuid, boolean) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.my_onboarding_state() FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.current_household_id() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_household_admin() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.create_household(text, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.request_join_household(text, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.resolve_join_request(uuid, boolean) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.my_onboarding_state() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) TO authenticated;
