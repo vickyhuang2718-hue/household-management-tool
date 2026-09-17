@@ -55,6 +55,34 @@ function InventoryPage() {
   const queryClient = useQueryClient();
   const { data: items = [], isLoading } = useQuery(inventoryQuery);
   const [showForm, setShowForm] = useState(false);
+  const [noteFor, setNoteFor] = useState<string | null>(null);
+
+  const userId = useCurrentUserId();
+  const { data: profile } = useQuery(profileQuery(userId));
+  const { data: members = [] } = useQuery(membersQuery);
+  const myName =
+    members.find((member) => member.id === profile?.member_id)?.name ?? "家人";
+
+  const saveNote = useMutation({
+    mutationFn: async ({ item, note }: { item: InventoryItem; note: string }) => {
+      const trimmed = note.trim();
+      const { error } = await supabase
+        .from("inventory_items")
+        .update({
+          note: trimmed || null,
+          note_updated_at: trimmed ? new Date().toISOString() : null,
+          note_updated_by: trimmed ? myName : null,
+        })
+        .eq("id", item.id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inventory_items"] });
+      setNoteFor(null);
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
 
   const setStatus = useMutation({
     mutationFn: async ({ item, status }: { item: InventoryItem; status: StockStatus }) => {
