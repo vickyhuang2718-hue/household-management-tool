@@ -201,6 +201,22 @@ function ChoreBoard() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const dismissAllEdits = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("chore_edits")
+        .update({ dismissed: true })
+        .in("id", edits.map((edit) => edit.id));
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["chore_edits"] });
+      toast.success("已忽略全部通知");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+
   const visible = filter
     ? chores.filter((c) =>
         filter === "unassigned" ? !c.member_id : c.member_id === filter,
@@ -276,9 +292,21 @@ function ChoreBoard() {
     >
       {isAdmin && edits.length > 0 && (
         <section className="mb-5 space-y-2 rounded-xl border border-border bg-card p-4">
-          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            家务改动通知
-          </h2>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              家务改动通知
+            </h2>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs text-muted-foreground"
+              onClick={() => dismissAllEdits.mutate()}
+              disabled={dismissAllEdits.isPending}
+            >
+              全部忽略
+            </Button>
+          </div>
+
           {edits.map((edit) => (
             <div
               key={edit.id}
