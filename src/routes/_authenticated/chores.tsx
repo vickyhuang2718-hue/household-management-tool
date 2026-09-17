@@ -887,3 +887,128 @@ function ChoreForm({
     </form>
   );
 }
+
+function RepeatChoreBody({
+  chore,
+  members,
+  todayKey,
+  pending,
+  onCreate,
+  onSkip,
+}: {
+  chore: Chore;
+  members: { id: string; name: string }[];
+  todayKey: string;
+  pending: boolean;
+  onCreate: (values: ChoreFields) => void;
+  onSkip: () => void;
+}) {
+  const [title, setTitle] = useState(chore.title);
+  const [memberId, setMemberId] = useState(chore.member_id ?? "unassigned");
+  const [frequency, setFrequency] = useState(chore.frequency);
+  const [dueDate, setDueDate] = useState(
+    repeatAfter(todayKey, chore.frequency) ?? todayKey,
+  );
+  const [notes, setNotes] = useState(chore.notes ?? "");
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle className="text-left text-xl">安排下一次</DialogTitle>
+        <DialogDescription className="text-left">
+          按重复设置新建同样的家务，负责人默认还是原来那位。
+        </DialogDescription>
+      </DialogHeader>
+      <form
+        className="space-y-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!title.trim()) return;
+          onCreate({
+            title: title.trim(),
+            member_id: memberId === "unassigned" ? null : memberId,
+            frequency,
+            due_date: dueDate,
+            notes: notes.trim() ? notes.trim() : null,
+          });
+        }}
+      >
+        <div className="space-y-2">
+          <Label htmlFor="repeat-title">名称</Label>
+          <Input
+            id="repeat-title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            required
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label>谁来做</Label>
+            <Select value={memberId} onValueChange={setMemberId}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unassigned">待认领</SelectItem>
+                {members.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>多久一次</Label>
+            <Select
+              value={frequency}
+              onValueChange={(value) => {
+                setFrequency(value);
+                setDueDate(repeatAfter(todayKey, value) ?? dueDate);
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FREQUENCIES.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {FREQUENCY_LABELS[option] ?? option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="repeat-due">到期日</Label>
+          <Input
+            id="repeat-due"
+            type="date"
+            value={dueDate}
+            onChange={(event) => setDueDate(event.target.value)}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="repeat-notes">备注</Label>
+          <Textarea
+            id="repeat-notes"
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            placeholder="可写可不写"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button type="submit" className="flex-1" disabled={pending}>
+            <Plus className="size-4" /> 新建下一次
+          </Button>
+          <Button type="button" variant="outline" onClick={onSkip}>
+            不用了
+          </Button>
+        </div>
+      </form>
+    </>
+  );
+}
