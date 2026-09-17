@@ -227,15 +227,71 @@ function ShoppingPage() {
               >
                 <Check className="size-4" />
               </button>
-              <span
-                className={cn(
-                  "flex-1 font-medium",
-                  item.checked && "text-muted-foreground line-through",
-                )}
-              >
-                {item.name}
-                {item.quantity ? ` · ${item.quantity}` : ""}
-              </span>
+              {editingId === item.id ? (
+                <div className="min-w-0 flex-1 space-y-3">
+                  <Input
+                    value={editingName}
+                    onChange={(event) => setEditingName(event.target.value)}
+                    aria-label="物品名称 Item name"
+                  />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-muted-foreground">推迟 Postpone：</span>
+                    {[1, 2, 3].map((days) => (
+                      <Button
+                        key={days}
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        disabled={postponeUpcoming.isPending}
+                        onClick={() =>
+                          postponeUpcoming.mutate({
+                            id: item.id,
+                            from: toDateKey(new Date()),
+                            days,
+                          })
+                        }
+                      >
+                        {days} 天
+                      </Button>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={saveUpcomingName.isPending || !editingName.trim()}
+                      onClick={() =>
+                        saveUpcomingName.mutate({ id: item.id, name: editingName.trim() })
+                      }
+                    >
+                      保存
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingId(null)}
+                    >
+                      取消
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingId(item.id);
+                    setEditingName(item.name);
+                  }}
+                  className={cn(
+                    "min-w-0 flex-1 cursor-pointer text-left font-medium underline-offset-2 hover:underline",
+                    item.checked && "text-muted-foreground line-through",
+                  )}
+                >
+                  {item.name}
+                  {item.quantity ? ` · ${item.quantity}` : ""}
+                </button>
+              )}
             </li>
           ))}
           {list.length === 0 ? (
