@@ -253,14 +253,15 @@ function ShoppingPage() {
 
 const upcomingShoppingQuery = queryOptions({
   queryKey: ["shopping_items", "upcoming"],
-  queryFn: async () =>
-    unwrap<ShoppingItem[]>(
-      await supabase
-        .from("shopping_items")
-        .select("*")
-        .gt("buy_after", toDateKey(new Date()))
-        .order("buy_after"),
-    ),
+  queryFn: async (): Promise<ShoppingItem[]> => {
+    const { data, error } = await supabase
+      .from("shopping_items")
+      .select("*")
+      .gt("buy_after", toDateKey(new Date()))
+      .order("buy_after");
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  },
 });
 
 function Suggestions({
