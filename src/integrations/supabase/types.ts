@@ -170,6 +170,8 @@ export type Database = {
           low_threshold: number
           name: string
           quantity: number
+          reviewed_at: string
+          status: string
           unit: string
           updated_at: string
         }
@@ -180,6 +182,8 @@ export type Database = {
           low_threshold?: number
           name: string
           quantity?: number
+          reviewed_at?: string
+          status?: string
           unit?: string
           updated_at?: string
         }
@@ -190,6 +194,8 @@ export type Database = {
           low_threshold?: number
           name?: string
           quantity?: number
+          reviewed_at?: string
+          status?: string
           unit?: string
           updated_at?: string
         }
