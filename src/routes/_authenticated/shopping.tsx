@@ -93,9 +93,6 @@ function ShoppingPage() {
   const listNames = new Set(list.map((item) => item.name.toLowerCase()));
   const inventoryNames = new Set(inventory.map((item) => item.name.toLowerCase()));
 
-  const lowSuggestions = inventory
-    .filter((item) => Number(item.quantity) <= Number(item.low_threshold))
-    .filter((item) => !listNames.has(item.name.toLowerCase()));
 
   const weekStart = toDateKey(new Date());
   const weekEnd = toDateKey(addDays(new Date(), 7));
@@ -224,17 +221,6 @@ function ShoppingPage() {
           </ul>
         )}
       </section>
-
-      <Suggestions
-        heading="家里快用完了 · Running low"
-        items={lowSuggestions.map((item) => ({
-          key: item.id,
-          label: `${item.name} (剩 ${Number(item.quantity)} ${item.unit})`,
-          name: item.name,
-          category: item.category,
-        }))}
-        onAdd={(values) => addItem.mutate(values)}
-      />
 
       <Suggestions
         heading="本周菜单需要 · Needed for this week's meals"
