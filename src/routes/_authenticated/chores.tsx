@@ -374,6 +374,9 @@ function ChoreForm({
           </Select>
         </div>
       </div>
+      <p className="text-xs text-muted-foreground">
+        勾掉之后会自动生成下一次（按所选周期从完成当天算起，状态为「待认领」）。选「一次性（不重复）」就不会再生成。
+      </p>
       <div className="space-y-2">
         <Label htmlFor="chore-due">第一次到期</Label>
         <Input
