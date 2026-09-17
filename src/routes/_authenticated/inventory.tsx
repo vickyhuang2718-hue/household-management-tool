@@ -294,10 +294,14 @@ function InventoryPage() {
                                 type="button"
                                 onClick={() => setStatus.mutate({ item, status: option })}
                                 className={cn(
-                                  "rounded-full border border-border px-2.5 py-1 text-xs transition-colors",
+                                  "rounded-full border px-2.5 py-1 text-xs transition-colors",
                                   item.status === option
-                                    ? "border-transparent bg-primary text-primary-foreground"
-                                    : "text-muted-foreground hover:bg-muted",
+                                    ? option === "low"
+                                      ? "border-transparent bg-ochre text-ochre-foreground"
+                                      : option === "out"
+                                        ? "border-transparent bg-clay text-clay-foreground"
+                                        : "border-transparent bg-primary text-primary-foreground"
+                                    : "border-border text-muted-foreground hover:bg-muted",
                                 )}
                               >
                                 {STOCK_STATUS_LABELS[option]}
