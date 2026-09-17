@@ -264,7 +264,7 @@ function ChoreBoard() {
         </section>
       )}
 
-      <div className="flex flex-wrap gap-2">
+      <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [&::-webkit-scrollbar]:hidden [&>button]:shrink-0 [&>button]:whitespace-nowrap">
         <button
           type="button"
           onClick={() => setFilter(null)}
