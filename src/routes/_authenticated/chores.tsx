@@ -217,7 +217,7 @@ function ChoreBoard() {
   const upcoming = visible.filter((c) => c.due_date > weekEndKey);
 
   const filterRow = (
-    <div className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent [&>button]:shrink-0">
+    <div className="-mx-1 flex gap-2 overflow-x-auto px-1 py-2 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent [&>button]:shrink-0">
       <button
         type="button"
         onClick={() => setFilter(null)}
@@ -372,7 +372,7 @@ function ChoreBoard() {
         />
       ) : (
         <Button
-          className="fixed right-5 bottom-20 z-30 size-14 rounded-full shadow-lg"
+          className="fixed bottom-20 left-1/2 z-30 size-14 -translate-x-1/2 rounded-full shadow-lg"
           size="icon"
           aria-label="添加家务"
           onClick={() => setShowForm(true)}
