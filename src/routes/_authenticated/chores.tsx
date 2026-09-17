@@ -69,6 +69,7 @@ function ChoreBoard() {
   const [filter, setFilter] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [selected, setSelected] = useState<Chore | null>(null);
+  const [repeatFor, setRepeatFor] = useState<Chore | null>(null);
   const userId = useCurrentUserId();
   const { data: profile } = useQuery(profileQuery(userId));
   const myMemberId = profile?.member_id ?? null;
@@ -97,22 +98,36 @@ function ChoreBoard() {
         .eq("id", chore.id);
       if (error) throw new Error(error.message);
 
+      return chore;
+    },
+    onSuccess: (chore) => {
+      queryClient.invalidateQueries({ queryKey: ["chores"] });
       const next = repeatAfter(todayKey, chore.frequency);
       if (next) {
-        const { error: repeatError } = await supabase.from("chores").insert({
-          title: chore.title,
-          notes: chore.notes,
-          frequency: chore.frequency,
-          due_date: next,
-          member_id: null,
-        });
-        if (repeatError) throw new Error(repeatError.message);
+        setRepeatFor(chore);
+        toast.success("完成啦，要不要安排下一次？");
+      } else {
+        toast.success("完成，已从板上移除");
       }
-      return next;
     },
-    onSuccess: (next) => {
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const createRepeat = useMutation({
+    mutationFn: async (values: ChoreFields) => {
+      const { error } = await supabase.from("chores").insert({
+        title: values.title,
+        notes: values.notes,
+        frequency: values.frequency,
+        due_date: values.due_date,
+        member_id: values.member_id,
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["chores"] });
-      toast.success(next ? "完成啦，已新建下一次（待认领）" : "完成，已从板上移除");
+      setRepeatFor(null);
+      toast.success("已安排下一次");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -391,6 +406,27 @@ function ChoreBoard() {
         saving={saveEdit.isPending}
       />
 
+      <Dialog
+        open={repeatFor !== null}
+        onOpenChange={(open) => {
+          if (!open) setRepeatFor(null);
+        }}
+      >
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
+          {repeatFor ? (
+            <RepeatChoreBody
+              chore={repeatFor}
+              members={members}
+              todayKey={todayKey}
+              pending={createRepeat.isPending}
+              onCreate={(values) => createRepeat.mutate(values)}
+              onSkip={() => setRepeatFor(null)}
+            />
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
+
       {showForm ? (
         <ChoreForm
           members={members}
@@ -590,7 +626,6 @@ function ChoreDetailBody({
   const [notes, setNotes] = useState(chore.notes ?? "");
 
   const member = members.find((m) => m.id === chore.member_id);
-  const next = repeatAfter(todayKey, chore.frequency);
 
   if (editing) {
     return (
@@ -734,16 +769,6 @@ function ChoreDetailBody({
             {chore.notes ? chore.notes : "没有备注"}
           </dd>
         </div>
-        {next && (
-          <p className="text-xs text-muted-foreground">
-            勾掉后，下一次会安排在{" "}
-            {parseDateKey(next).toLocaleDateString("zh-CN", {
-              day: "numeric",
-              month: "long",
-            })}{" "}
-            （待认领）。
-          </p>
-        )}
       </dl>
       <div className="flex gap-2">
         <Button className="flex-1" disabled={completing} onClick={() => onComplete(chore)}>
@@ -860,5 +885,130 @@ function ChoreForm({
         </Button>
       </div>
     </form>
+  );
+}
+
+function RepeatChoreBody({
+  chore,
+  members,
+  todayKey,
+  pending,
+  onCreate,
+  onSkip,
+}: {
+  chore: Chore;
+  members: { id: string; name: string }[];
+  todayKey: string;
+  pending: boolean;
+  onCreate: (values: ChoreFields) => void;
+  onSkip: () => void;
+}) {
+  const [title, setTitle] = useState(chore.title);
+  const [memberId, setMemberId] = useState(chore.member_id ?? "unassigned");
+  const [frequency, setFrequency] = useState(chore.frequency);
+  const [dueDate, setDueDate] = useState(
+    repeatAfter(todayKey, chore.frequency) ?? todayKey,
+  );
+  const [notes, setNotes] = useState(chore.notes ?? "");
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle className="text-left text-xl">安排下一次</DialogTitle>
+        <DialogDescription className="text-left">
+          按重复设置新建同样的家务，负责人默认还是原来那位。
+        </DialogDescription>
+      </DialogHeader>
+      <form
+        className="space-y-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!title.trim()) return;
+          onCreate({
+            title: title.trim(),
+            member_id: memberId === "unassigned" ? null : memberId,
+            frequency,
+            due_date: dueDate,
+            notes: notes.trim() ? notes.trim() : null,
+          });
+        }}
+      >
+        <div className="space-y-2">
+          <Label htmlFor="repeat-title">名称</Label>
+          <Input
+            id="repeat-title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            required
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label>谁来做</Label>
+            <Select value={memberId} onValueChange={setMemberId}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unassigned">待认领</SelectItem>
+                {members.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>多久一次</Label>
+            <Select
+              value={frequency}
+              onValueChange={(value) => {
+                setFrequency(value);
+                setDueDate(repeatAfter(todayKey, value) ?? dueDate);
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FREQUENCIES.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {FREQUENCY_LABELS[option] ?? option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="repeat-due">到期日</Label>
+          <Input
+            id="repeat-due"
+            type="date"
+            value={dueDate}
+            onChange={(event) => setDueDate(event.target.value)}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="repeat-notes">备注</Label>
+          <Textarea
+            id="repeat-notes"
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            placeholder="可写可不写"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button type="submit" className="flex-1" disabled={pending}>
+            <Plus className="size-4" /> 新建下一次
+          </Button>
+          <Button type="button" variant="outline" onClick={onSkip}>
+            不用了
+          </Button>
+        </div>
+      </form>
+    </>
   );
 }
