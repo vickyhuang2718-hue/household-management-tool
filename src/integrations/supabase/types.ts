@@ -162,6 +162,50 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory_edits: {
+        Row: {
+          after_name: string
+          before_name: string
+          created_at: string
+          dismissed: boolean
+          edited_by: string | null
+          editor_name: string
+          id: string
+          item_id: string
+          undone: boolean
+        }
+        Insert: {
+          after_name: string
+          before_name: string
+          created_at?: string
+          dismissed?: boolean
+          edited_by?: string | null
+          editor_name?: string
+          id?: string
+          item_id: string
+          undone?: boolean
+        }
+        Update: {
+          after_name?: string
+          before_name?: string
+          created_at?: string
+          dismissed?: boolean
+          edited_by?: string | null
+          editor_name?: string
+          id?: string
+          item_id?: string
+          undone?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_edits_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_items: {
         Row: {
           category: string
