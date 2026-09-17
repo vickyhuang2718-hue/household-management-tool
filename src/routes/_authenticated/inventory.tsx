@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Minus, Plus, TriangleAlert } from "lucide-react";
+import { Plus, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/household/AppShell";
@@ -52,19 +52,6 @@ function InventoryPage() {
   const queryClient = useQueryClient();
   const { data: items = [], isLoading } = useQuery(inventoryQuery);
   const [showForm, setShowForm] = useState(false);
-
-  const adjust = useMutation({
-    mutationFn: async ({ item, delta }: { item: InventoryItem; delta: number }) => {
-      const quantity = Math.max(0, Number(item.quantity) + delta);
-      const { error } = await supabase
-        .from("inventory_items")
-        .update({ quantity, reviewed_at: new Date().toISOString() })
-        .eq("id", item.id);
-      if (error) throw new Error(error.message);
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["inventory_items"] }),
-    onError: (error: Error) => toast.error(error.message),
-  });
 
   const setStatus = useMutation({
     mutationFn: async ({ item, status }: { item: InventoryItem; status: StockStatus }) => {
@@ -154,28 +141,6 @@ function InventoryPage() {
                                 />
                               ) : null}
                             </p>
-                            <p className="text-xs text-muted-foreground">
-                              {Number(item.quantity)} {item.unit} · 低于{" "}
-                              {Number(item.low_threshold)}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              aria-label={`减少一个 ${item.name}`}
-                              onClick={() => adjust.mutate({ item, delta: -1 })}
-                            >
-                              <Minus className="size-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              aria-label={`增加一个 ${item.name}`}
-                              onClick={() => adjust.mutate({ item, delta: 1 })}
-                            >
-                              <Plus className="size-4" />
-                            </Button>
                           </div>
                         </div>
                         <div className="mt-3 flex flex-wrap gap-1.5">
