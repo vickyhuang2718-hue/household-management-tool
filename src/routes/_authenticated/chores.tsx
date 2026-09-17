@@ -341,6 +341,8 @@ function ChoreBoard() {
           complete.mutate(chore);
         }}
         completing={complete.isPending}
+        onSave={(chore, values) => saveEdit.mutate({ chore, values })}
+        saving={saveEdit.isPending}
       />
 
       {showForm ? (
