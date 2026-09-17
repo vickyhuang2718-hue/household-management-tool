@@ -62,9 +62,9 @@ export type BabyTag = "as_is" | "reserve" | "not_suitable";
 export const BABY_TAGS: BabyTag[] = ["as_is", "reserve", "not_suitable"];
 
 export const BABY_TAG_LABELS: Record<BabyTag, string> = {
-  as_is: "适合宝宝",
-  reserve: "调味前先盛出宝宝那份",
-  not_suitable: "宝宝不适合吃",
+  as_is: "宝宝可食",
+  reserve: "调味前宝宝可食",
+  not_suitable: "宝宝不宜",
 };
 
 export const BABY_TAG_TONES: Record<BabyTag, string> = {
