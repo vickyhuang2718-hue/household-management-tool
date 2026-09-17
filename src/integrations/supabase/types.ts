@@ -642,6 +642,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      household_member_roles: {
+        Args: never
+        Returns: {
+          member_id: string
+          role: Database["public"]["Enums"]["app_role"]
+        }[]
+      }
       is_household_admin: { Args: never; Returns: boolean }
       my_onboarding_state: {
         Args: never
