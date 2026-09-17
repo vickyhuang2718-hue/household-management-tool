@@ -485,6 +485,60 @@ function InventoryPage() {
           <Plus className="size-4" /> 添加物品
         </Button>
       )}
+
+      <Dialog
+        open={shopPrompt !== null}
+        onOpenChange={(open) => {
+          if (!open) setShopPrompt(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>加入采购清单吗？</DialogTitle>
+            <DialogDescription>
+              「{shopPrompt?.name}」可以现在加入采购清单，或者过几天再提醒。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="shop-days" className="shrink-0 text-sm">
+              推迟天数
+            </Label>
+            <Select value={shopDays} onValueChange={setShopDays}>
+              <SelectTrigger id="shop-days" className="w-28">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 天</SelectItem>
+                <SelectItem value="2">2 天</SelectItem>
+                <SelectItem value="3">3 天</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button
+              onClick={() =>
+                shopPrompt && addToShopping.mutate({ item: shopPrompt, days: 0 })
+              }
+              disabled={addToShopping.isPending}
+            >
+              现在加入
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() =>
+                shopPrompt &&
+                addToShopping.mutate({ item: shopPrompt, days: Number(shopDays) })
+              }
+              disabled={addToShopping.isPending}
+            >
+              {shopDays} 天后加入
+            </Button>
+            <Button variant="ghost" onClick={() => setShopPrompt(null)}>
+              不用了
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
