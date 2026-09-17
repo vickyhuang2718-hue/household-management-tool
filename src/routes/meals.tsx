@@ -262,7 +262,7 @@ function MealForm({
   pending,
 }: {
   slot: string;
-  meal?: Meal;
+  meal?: Meal | undefined;
   onSave: (values: { title: string; notes: string; toddler_note: string }) => void;
   onCancel: () => void;
   pending: boolean;

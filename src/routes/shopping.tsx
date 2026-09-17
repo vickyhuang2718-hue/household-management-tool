@@ -217,8 +217,8 @@ function Suggestions({
   onAdd,
 }: {
   heading: string;
-  items: { key: string; label: string; name: string; category?: string }[];
-  onAdd: (values: { name: string; category?: string }) => void;
+  items: { key: string; label: string; name: string; category?: string | undefined }[];
+  onAdd: (values: { name: string; category?: string | undefined }) => void;
 }) {
   if (items.length === 0) return null;
 
