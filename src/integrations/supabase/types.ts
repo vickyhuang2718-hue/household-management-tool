@@ -373,6 +373,57 @@ export type Database = {
           },
         ]
       }
+      meal_dishes: {
+        Row: {
+          baby_tag: string
+          created_at: string
+          household_id: string
+          id: string
+          meal_id: string
+          name: string
+          notes: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          baby_tag?: string
+          created_at?: string
+          household_id?: string
+          id?: string
+          meal_id: string
+          name: string
+          notes?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          baby_tag?: string
+          created_at?: string
+          household_id?: string
+          id?: string
+          meal_id?: string
+          name?: string
+          notes?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_dishes_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_dishes_meal_id_fkey"
+            columns: ["meal_id"]
+            isOneToOne: false
+            referencedRelation: "meals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meal_ingredients: {
         Row: {
           created_at: string

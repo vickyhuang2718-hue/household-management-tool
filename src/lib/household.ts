@@ -57,6 +57,31 @@ export type MealIngredient = {
   quantity: string | null;
 };
 
+export type BabyTag = "as_is" | "reserve" | "not_suitable";
+
+export const BABY_TAGS: BabyTag[] = ["as_is", "reserve", "not_suitable"];
+
+export const BABY_TAG_LABELS: Record<BabyTag, string> = {
+  as_is: "宝宝可以直接吃",
+  reserve: "调味前先盛出宝宝那份",
+  not_suitable: "宝宝不适合吃",
+};
+
+export const BABY_TAG_TONES: Record<BabyTag, string> = {
+  as_is: "bg-sage text-sage-foreground",
+  reserve: "bg-ochre text-ochre-foreground",
+  not_suitable: "bg-clay text-clay-foreground",
+};
+
+export type MealDish = {
+  id: string;
+  meal_id: string;
+  name: string;
+  notes: string | null;
+  baby_tag: BabyTag;
+  sort_order: number;
+};
+
 export type StockStatus = "enough" | "low" | "out";
 
 export const STOCK_STATUSES: StockStatus[] = ["enough", "low", "out"];
@@ -185,6 +210,19 @@ export const mealsQuery = queryOptions({
   queryKey: ["meals"],
   queryFn: async () =>
     unwrap<Meal[]>(await supabase.from("meals").select("*").order("meal_date")),
+});
+
+export const mealDishesQuery = queryOptions({
+  queryKey: ["meal_dishes"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("meal_dishes")
+      .select("id, meal_id, name, notes, baby_tag, sort_order")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as MealDish[];
+  },
 });
 
 export const mealIngredientsQuery = queryOptions({
