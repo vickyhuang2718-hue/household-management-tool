@@ -305,14 +305,14 @@ function ChoreForm({
   onCancel: () => void;
   onSubmit: (values: {
     title: string;
-    member_id: string;
+    member_id: string | null;
     frequency: string;
     due_date: string;
   }) => void;
   pending: boolean;
 }) {
   const [title, setTitle] = useState("");
-  const [memberId, setMemberId] = useState(members[0]?.id ?? "");
+  const [memberId, setMemberId] = useState("unassigned");
   const [frequency, setFrequency] = useState<string>("weekly");
   const [dueDate, setDueDate] = useState(toDateKey(new Date()));
 
@@ -321,8 +321,13 @@ function ChoreForm({
       className="mt-8 space-y-4 rounded-xl border border-border bg-card p-4"
       onSubmit={(event) => {
         event.preventDefault();
-        if (!title.trim() || !memberId) return;
-        onSubmit({ title: title.trim(), member_id: memberId, frequency, due_date: dueDate });
+        if (!title.trim()) return;
+        onSubmit({
+          title: title.trim(),
+          member_id: memberId === "unassigned" ? null : memberId,
+          frequency,
+          due_date: dueDate,
+        });
       }}
     >
       <h2 className="text-lg font-semibold">新的家务</h2>
