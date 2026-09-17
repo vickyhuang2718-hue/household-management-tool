@@ -92,7 +92,7 @@ function InventoryPage() {
           ...(noteChanged
             ? {
                 note_updated_at: trimmed ? new Date().toISOString() : null,
-                note_updated_by: trimmed ? myName : null,
+                note_updated_by: trimmed ? (profile?.member_id ?? myName) : null,
               }
             : {}),
         })
@@ -401,7 +401,9 @@ function InventoryPage() {
                             <p className="text-sm text-foreground">
                               {item.note}{" "}
                               <span className="whitespace-nowrap text-[11px] text-muted-foreground">
-                                · {item.note_updated_by ?? "某人"}
+                                ·{" "}
+                                {members.find((member) => member.id === item.note_updated_by)
+                                  ?.name ?? item.note_updated_by ?? "某人"}
                                 {item.note_updated_at
                                   ? ` · ${new Date(item.note_updated_at).toLocaleDateString(
                                       LOCALE,
