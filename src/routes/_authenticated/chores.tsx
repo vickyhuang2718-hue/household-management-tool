@@ -2,6 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Check, Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 import { AppShell, useCurrentUserId } from "@/components/household/AppShell";
@@ -56,6 +63,7 @@ function ChoreBoard() {
   const { data: chores = [], isLoading } = useQuery(choresQuery);
   const [filter, setFilter] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [selected, setSelected] = useState<Chore | null>(null);
   const userId = useCurrentUserId();
   const { data: profile } = useQuery(profileQuery(userId));
   const myMemberId = profile?.member_id ?? null;
