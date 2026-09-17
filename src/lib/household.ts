@@ -6,7 +6,13 @@ export type Member = {
   name: string;
   role: string;
   color: string;
+  emoji: string;
   sort_order: number;
+};
+
+export type HouseholdSettings = {
+  id: string;
+  name: string;
 };
 
 export type Chore = {
@@ -213,6 +219,51 @@ export function profileQuery(userId: string | null) {
     },
   });
 }
+
+export const householdQuery = queryOptions({
+  queryKey: ["household_settings"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("household_settings")
+      .select("id, name")
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return (data ?? null) as HouseholdSettings | null;
+  },
+});
+
+export function isAdminQuery(userId: string | null) {
+  return queryOptions({
+    queryKey: ["is_admin", userId],
+    enabled: Boolean(userId),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId!)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      return Boolean(data);
+    },
+  });
+}
+
+/** Icons people can pick for themselves. */
+export const EMOJI_CHOICES = [
+  "🌷", "🌿", "🍵", "🧸", "🐣", "🐻", "🐱", "🐶",
+  "🌻", "🍎", "🥕", "🍚", "⭐", "🌙", "🔥", "💐",
+] as const;
+
+export const COLOR_CHOICES = ["sage", "clay", "ochre", "plum"] as const;
+
+export const COLOR_LABELS: Record<string, string> = {
+  sage: "青绿 Sage",
+  clay: "陶土 Clay",
+  ochre: "赭黄 Ochre",
+  plum: "梅紫 Plum",
+};
 
 export function formatDay(date: Date) {
   return date.toLocaleDateString(LOCALE, {

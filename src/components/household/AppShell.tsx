@@ -1,12 +1,24 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, ListChecks, LogOut, Package, ShoppingCart } from "lucide-react";
+import {
+  CalendarDays,
+  ListChecks,
+  LogOut,
+  Package,
+  Settings,
+  ShoppingCart,
+} from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { initials, memberToneClass, membersQuery, profileQuery } from "@/lib/household";
+import {
+  householdQuery,
+  memberToneClass,
+  membersQuery,
+  profileQuery,
+} from "@/lib/household";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -40,6 +52,7 @@ export function AppShell({
   const userId = useCurrentUserId();
   const { data: profile } = useQuery(profileQuery(userId));
   const { data: members = [] } = useQuery(membersQuery);
+  const { data: household } = useQuery(householdQuery);
   const [saving, setSaving] = useState(false);
 
   const me = members.find((member) => member.id === profile?.member_id);
@@ -86,11 +99,11 @@ export function AppShell({
                 >
                   <span
                     className={cn(
-                      "flex size-9 items-center justify-center rounded-full text-xs font-semibold",
+                      "flex size-9 items-center justify-center rounded-full text-base",
                       memberToneClass[member.color] ?? "bg-muted text-foreground",
                     )}
                   >
-                    {initials(member.name)}
+                    {member.emoji}
                   </span>
                   <span className="font-medium text-foreground">{member.name}</span>
                 </button>
@@ -110,26 +123,31 @@ export function AppShell({
       <header className="border-b border-border bg-card/70 px-5 pt-8 pb-5 backdrop-blur">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Household Hub
+            <p className="truncate text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              {household?.name ?? "Household Hub"}
             </p>
             <h1 className="mt-1 text-3xl font-semibold text-foreground">{title}</h1>
             {subtitle ? (
               <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
             ) : null}
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1">
             {me ? (
               <span
                 className={cn(
-                  "flex size-9 items-center justify-center rounded-full text-xs font-semibold",
+                  "flex size-9 items-center justify-center rounded-full text-base",
                   memberToneClass[me.color] ?? "bg-muted text-foreground",
                 )}
                 title={me.name}
               >
-                {initials(me.name)}
+                {me.emoji}
               </span>
             ) : null}
+            <Button variant="ghost" size="icon" aria-label="家庭设置" asChild>
+              <Link to="/settings">
+                <Settings className="size-4" />
+              </Link>
+            </Button>
             <Button variant="ghost" size="icon" aria-label="退出登录" onClick={signOut}>
               <LogOut className="size-4" />
             </Button>
