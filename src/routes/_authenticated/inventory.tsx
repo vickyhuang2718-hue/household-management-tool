@@ -301,7 +301,7 @@ function InventoryPage() {
       )}
 
       <p className="mb-5 rounded-xl border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
-        上次盘点 Last review：
+        我上次盘点的日期：
         {lastReview
           ? new Date(lastReview).toLocaleDateString(LOCALE, {
               year: "numeric",
