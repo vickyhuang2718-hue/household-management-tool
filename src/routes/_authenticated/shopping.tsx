@@ -165,7 +165,7 @@ function ShoppingPage() {
 
   return (
     <AppShell
-      title="采购清单 Shopping"
+      title="采购清单"
     >
       <form
         className="flex gap-2"
@@ -314,7 +314,7 @@ function ShoppingPage() {
 
       <section className="mt-8">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          稍后要买 · Upcoming
+          3天内要买 · UPCOMING
         </h2>
         {upcoming.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
