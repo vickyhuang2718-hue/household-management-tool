@@ -1,4 +1,4 @@
-# Household Hub for a family of 4
+- Household Hub for a family of 4
 
 A single shared app — no logins — that everyone in the house can open on any phone or tablet and see the same, up-to-date information. Four people are set up from the start: Husband, Wife, Father-in-law, and your 2-year-old.
 
