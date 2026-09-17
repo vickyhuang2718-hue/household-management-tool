@@ -362,11 +362,12 @@ function InventoryPage() {
                         {editing === item.id ? (
                           <ItemEditor
                             item={item}
-                            pending={saveItem.isPending}
+                            pending={saveItem.isPending || deleteItem.isPending}
                             onCancel={() => setEditing(null)}
                             onSave={(name, note) =>
                               saveItem.mutate({ item, name, note })
                             }
+                            onDelete={() => deleteItem.mutate(item)}
                           />
                         ) : null}
                       </li>
@@ -500,11 +501,13 @@ function ItemEditor({
   item,
   onSave,
   onCancel,
+  onDelete,
   pending,
 }: {
   item: InventoryItem;
   onSave: (name: string, note: string) => void;
   onCancel: () => void;
+  onDelete: () => void;
   pending: boolean;
 }) {
   const [name, setName] = useState(item.name);
