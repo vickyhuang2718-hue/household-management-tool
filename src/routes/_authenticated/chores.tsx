@@ -206,7 +206,7 @@ function ChoreGroup({
 }: {
   heading: string;
   chores: Chore[];
-  members: { id: string; name: string; color: string }[];
+  members: { id: string; name: string; color: string; emoji: string }[];
   onComplete: (chore: Chore) => void;
   tone?: "destructive";
 }) {
