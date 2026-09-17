@@ -22,7 +22,7 @@ import {
 } from "@/lib/household";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/meals")({
+export const Route = createFileRoute("/_authenticated/meals")({
   head: () => ({
     meta: [
       { title: "Meal Plan — Household Hub" },

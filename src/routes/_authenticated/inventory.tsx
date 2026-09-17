@@ -19,7 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES, type InventoryItem, inventoryQuery } from "@/lib/household";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/inventory")({
+export const Route = createFileRoute("/_authenticated/inventory")({
   head: () => ({
     meta: [
       { title: "Pantry & Supplies — Household Hub" },

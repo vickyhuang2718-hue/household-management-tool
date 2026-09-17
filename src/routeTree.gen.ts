@@ -9,104 +9,109 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as InventoryRouteImport } from './routes/inventory'
-import { Route as MealsRouteImport } from './routes/meals'
-import { Route as ShoppingRouteImport } from './routes/shopping'
+import { Route as AuthenticatedChoresRouteImport } from './routes/_authenticated/chores'
+import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
+import { Route as AuthenticatedMealsRouteImport } from './routes/_authenticated/meals'
+import { Route as AuthenticatedShoppingRouteImport } from './routes/_authenticated/shopping'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthenticatedChoresRoute = AuthenticatedChoresRouteImport.update({
+  id: '/_authenticated/chores',
+  path: '/chores',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InventoryRoute = InventoryRouteImport.update({
-  id: '/inventory',
+const AuthenticatedInventoryRoute = AuthenticatedInventoryRouteImport.update({
+  id: '/_authenticated/inventory',
   path: '/inventory',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MealsRoute = MealsRouteImport.update({
-  id: '/meals',
+const AuthenticatedMealsRoute = AuthenticatedMealsRouteImport.update({
+  id: '/_authenticated/meals',
   path: '/meals',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ShoppingRoute = ShoppingRouteImport.update({
-  id: '/shopping',
+const AuthenticatedShoppingRoute = AuthenticatedShoppingRouteImport.update({
+  id: '/_authenticated/shopping',
   path: '/shopping',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/inventory': typeof InventoryRoute
-  '/meals': typeof MealsRoute
-  '/shopping': typeof ShoppingRoute
+  '/chores': typeof AuthenticatedChoresRoute
+  '/inventory': typeof AuthenticatedInventoryRoute
+  '/meals': typeof AuthenticatedMealsRoute
+  '/shopping': typeof AuthenticatedShoppingRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/inventory': typeof InventoryRoute
-  '/meals': typeof MealsRoute
-  '/shopping': typeof ShoppingRoute
+  '/chores': typeof AuthenticatedChoresRoute
+  '/inventory': typeof AuthenticatedInventoryRoute
+  '/meals': typeof AuthenticatedMealsRoute
+  '/shopping': typeof AuthenticatedShoppingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/inventory': typeof InventoryRoute
-  '/meals': typeof MealsRoute
-  '/shopping': typeof ShoppingRoute
+  '/_authenticated/chores': typeof AuthenticatedChoresRoute
+  '/_authenticated/inventory': typeof AuthenticatedInventoryRoute
+  '/_authenticated/meals': typeof AuthenticatedMealsRoute
+  '/_authenticated/shopping': typeof AuthenticatedShoppingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/inventory' | '/meals' | '/shopping'
+  fullPaths: '/chores' | '/inventory' | '/meals' | '/shopping'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/inventory' | '/meals' | '/shopping'
-  id: '__root__' | '/' | '/inventory' | '/meals' | '/shopping'
+  to: '/chores' | '/inventory' | '/meals' | '/shopping'
+  id:
+    | '__root__'
+    | '/_authenticated/chores'
+    | '/_authenticated/inventory'
+    | '/_authenticated/meals'
+    | '/_authenticated/shopping'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  InventoryRoute: typeof InventoryRoute
-  MealsRoute: typeof MealsRoute
-  ShoppingRoute: typeof ShoppingRoute
+  AuthenticatedChoresRoute: typeof AuthenticatedChoresRoute
+  AuthenticatedInventoryRoute: typeof AuthenticatedInventoryRoute
+  AuthenticatedMealsRoute: typeof AuthenticatedMealsRoute
+  AuthenticatedShoppingRoute: typeof AuthenticatedShoppingRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/_authenticated/chores': {
+      id: '/_authenticated/chores'
+      path: '/chores'
+      fullPath: '/chores'
+      preLoaderRoute: typeof AuthenticatedChoresRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/inventory': {
-      id: '/inventory'
+    '/_authenticated/inventory': {
+      id: '/_authenticated/inventory'
       path: '/inventory'
       fullPath: '/inventory'
-      preLoaderRoute: typeof InventoryRouteImport
+      preLoaderRoute: typeof AuthenticatedInventoryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/meals': {
-      id: '/meals'
+    '/_authenticated/meals': {
+      id: '/_authenticated/meals'
       path: '/meals'
       fullPath: '/meals'
-      preLoaderRoute: typeof MealsRouteImport
+      preLoaderRoute: typeof AuthenticatedMealsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/shopping': {
-      id: '/shopping'
+    '/_authenticated/shopping': {
+      id: '/_authenticated/shopping'
       path: '/shopping'
       fullPath: '/shopping'
-      preLoaderRoute: typeof ShoppingRouteImport
+      preLoaderRoute: typeof AuthenticatedShoppingRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  InventoryRoute: InventoryRoute,
-  MealsRoute: MealsRoute,
-  ShoppingRoute: ShoppingRoute,
+  AuthenticatedChoresRoute: AuthenticatedChoresRoute,
+  AuthenticatedInventoryRoute: AuthenticatedInventoryRoute,
+  AuthenticatedMealsRoute: AuthenticatedMealsRoute,
+  AuthenticatedShoppingRoute: AuthenticatedShoppingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -29,7 +29,7 @@ import {
 } from "@/lib/household";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/chores")({
   head: () => ({
     meta: [
       { title: "Chore Board — Household Hub" },
