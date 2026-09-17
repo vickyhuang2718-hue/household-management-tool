@@ -256,34 +256,6 @@ function SettingsPage() {
         )}
       </section>
 
-      {isAdmin ? (
-        <section className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
-          <h2 className="text-sm font-semibold text-foreground">家人的颜色</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            作为管理员，你可以调整每个人的头像颜色。
-          </p>
-          <ul className="mt-3 space-y-4">
-            {members.map((member) => (
-              <li key={member.id}>
-                <div className="flex items-center gap-3">
-                  <span
-                    className={cn(
-                      "flex size-9 items-center justify-center rounded-full text-sm font-semibold",
-                      memberToneClass[member.color] ?? "bg-muted text-foreground",
-                    )}
-                  >
-                    {memberBadge(member)}
-                  </span>
-                  <span className="text-sm font-medium text-foreground">
-                    {member.name}
-                  </span>
-                </div>
-                <ColorRow member={member} onPick={updateColor} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
 
       {isAdmin ? (
         <p className="mt-4 text-xs text-muted-foreground">
