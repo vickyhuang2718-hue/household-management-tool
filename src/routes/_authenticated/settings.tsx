@@ -10,8 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  COLOR_CHOICES,
-  COLOR_LABELS,
   householdQuery,
   isAdminQuery,
   joinRequestsQuery,
@@ -20,7 +18,6 @@ import {
   memberToneClass,
   membersQuery,
   profileQuery,
-  type Member,
 } from "@/lib/household";
 import { cn } from "@/lib/utils";
 
@@ -58,20 +55,11 @@ function SettingsPage() {
     memberRoles.map((row) => [row.member_id, row.role]),
   ) as Record<string, "admin" | "member" | undefined>;
   const [householdName, setHouseholdName] = useState("");
-  const [myName, setMyName] = useState("");
-  const [myInitial, setMyInitial] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (household?.name) setHouseholdName(household.name);
   }, [household?.name]);
-
-  useEffect(() => {
-    if (me) {
-      setMyName(me.name);
-      setMyInitial(memberBadge(me));
-    }
-  }, [me?.id, me?.name, me?.initial]);
 
   function refreshMembers() {
     queryClient.invalidateQueries({ queryKey: ["members"] });
@@ -106,38 +94,6 @@ function SettingsPage() {
     queryClient.invalidateQueries({ queryKey: ["join_requests"] });
     refreshMembers();
     toast.success(approve ? "已通过，TA 可以进来了" : "已婉拒");
-  }
-
-  async function saveMyProfile(event: React.FormEvent) {
-    event.preventDefault();
-    if (!me) return;
-    const name = myName.trim();
-    const initial = [...myInitial.trim()][0] ?? "";
-    if (!name) return;
-    setSaving(true);
-    const { error } = await supabase
-      .from("members")
-      .update({ name, initial })
-      .eq("id", me.id);
-    setSaving(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    refreshMembers();
-    toast.success("已保存");
-  }
-
-  async function updateColor(member: Member, color: string) {
-    const { error } = await supabase
-      .from("members")
-      .update({ color })
-      .eq("id", member.id);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    refreshMembers();
   }
 
   return (
