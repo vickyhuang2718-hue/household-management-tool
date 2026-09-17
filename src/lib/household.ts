@@ -368,9 +368,9 @@ export const COLOR_LABELS: Record<string, string> = {
   sage: "青绿 Sage",
   clay: "陶土 Clay",
   ochre: "赭黄 Ochre",
-  teal: "梅紫 Plum",
+  teal: "青蓝 Teal",
   denim: "靛蓝 Denim",
-  cocoa: "玫瑰 Rose",
+  cocoa: "可可 Cocoa",
   olive: "橄榄 Olive",
   stone: "石灰 Stone",
 };
