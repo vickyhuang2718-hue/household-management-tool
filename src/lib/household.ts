@@ -179,7 +179,11 @@ export const inventoryQuery = queryOptions({
   queryKey: ["inventory_items"],
   queryFn: async () =>
     unwrap<InventoryItem[]>(
-      (await supabase.from("inventory_items").select("*").order("name")) as never,
+      (await supabase
+        .from("inventory_items")
+        .select("*")
+        .eq("deleted", false)
+        .order("name")) as never,
     ),
 
 });
@@ -319,6 +323,7 @@ export type InventoryEdit = {
   editor_name: string;
   before_name: string;
   after_name: string;
+  action: string;
   undone: boolean;
   dismissed: boolean;
   created_at: string;
