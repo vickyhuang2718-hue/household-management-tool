@@ -164,6 +164,7 @@ export type Database = {
       }
       inventory_edits: {
         Row: {
+          action: string
           after_name: string
           before_name: string
           created_at: string
@@ -175,6 +176,7 @@ export type Database = {
           undone: boolean
         }
         Insert: {
+          action?: string
           after_name: string
           before_name: string
           created_at?: string
@@ -186,6 +188,7 @@ export type Database = {
           undone?: boolean
         }
         Update: {
+          action?: string
           after_name?: string
           before_name?: string
           created_at?: string
@@ -210,6 +213,7 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          deleted: boolean
           id: string
           low_threshold: number
           name: string
@@ -225,6 +229,7 @@ export type Database = {
         Insert: {
           category?: string
           created_at?: string
+          deleted?: boolean
           id?: string
           low_threshold?: number
           name: string
@@ -240,6 +245,7 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
+          deleted?: boolean
           id?: string
           low_threshold?: number
           name?: string

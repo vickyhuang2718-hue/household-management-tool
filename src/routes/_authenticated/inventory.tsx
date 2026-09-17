@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Pencil, Plus, Undo2, X } from "lucide-react";
+import { Pencil, Plus, Trash2, Undo2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell, useCurrentUserId } from "@/components/household/AppShell";
@@ -118,11 +118,41 @@ function InventoryPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const deleteItem = useMutation({
+    mutationFn: async (item: InventoryItem) => {
+      const { error } = await supabase
+        .from("inventory_items")
+        .update({ deleted: true } as never)
+        .eq("id", item.id);
+      if (error) throw new Error(error.message);
+      const { error: logError } = await supabase.from("inventory_edits").insert({
+        item_id: item.id,
+        edited_by: userId,
+        editor_name: myName,
+        before_name: item.name,
+        after_name: item.name,
+        action: "delete",
+      } as never);
+      if (logError) throw new Error(logError.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inventory_items"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory_edits"] });
+      setEditing(null);
+      toast.success("已删除");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const undoEdit = useMutation({
     mutationFn: async (edit: InventoryEdit) => {
       const { error } = await supabase
         .from("inventory_items")
-        .update({ name: edit.before_name })
+        .update(
+          (edit.action === "delete"
+            ? { deleted: false }
+            : { name: edit.before_name }) as never,
+        )
         .eq("id", edit.item_id);
       if (error) throw new Error(error.message);
       const { error: markError } = await supabase
@@ -131,10 +161,10 @@ function InventoryPage() {
         .eq("id", edit.id);
       if (markError) throw new Error(markError.message);
     },
-    onSuccess: () => {
+    onSuccess: (_data, edit) => {
       queryClient.invalidateQueries({ queryKey: ["inventory_items"] });
       queryClient.invalidateQueries({ queryKey: ["inventory_edits"] });
-      toast.success("已撤销这次改名");
+      toast.success(edit.action === "delete" ? "已恢复这样东西" : "已撤销这次改名");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -209,8 +239,9 @@ function InventoryPage() {
             >
               <div className="min-w-0 flex-1">
                 <p className="font-medium">
-                  {edit.editor_name} 把「{edit.before_name}」改成了「
-                  {edit.after_name}」
+                  {edit.action === "delete"
+                    ? `${edit.editor_name} 删除了「${edit.before_name}」`
+                    : `${edit.editor_name} 把「${edit.before_name}」改成了「${edit.after_name}」`}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   {new Date(edit.created_at).toLocaleDateString(LOCALE, {
@@ -225,7 +256,8 @@ function InventoryPage() {
                 onClick={() => undoEdit.mutate(edit)}
                 disabled={undoEdit.isPending}
               >
-                <Undo2 className="size-4" /> 撤销
+                <Undo2 className="size-4" />{" "}
+                {edit.action === "delete" ? "恢复" : "撤销"}
               </Button>
               <Button
                 size="icon"
@@ -330,11 +362,12 @@ function InventoryPage() {
                         {editing === item.id ? (
                           <ItemEditor
                             item={item}
-                            pending={saveItem.isPending}
+                            pending={saveItem.isPending || deleteItem.isPending}
                             onCancel={() => setEditing(null)}
                             onSave={(name, note) =>
                               saveItem.mutate({ item, name, note })
                             }
+                            onDelete={() => deleteItem.mutate(item)}
                           />
                         ) : null}
                       </li>
@@ -468,11 +501,13 @@ function ItemEditor({
   item,
   onSave,
   onCancel,
+  onDelete,
   pending,
 }: {
   item: InventoryItem;
   onSave: (name: string, note: string) => void;
   onCancel: () => void;
+  onDelete: () => void;
   pending: boolean;
 }) {
   const [name, setName] = useState(item.name);
@@ -490,12 +525,21 @@ function ItemEditor({
         rows={2}
         placeholder="写点备注，比如牌子、放在哪、什么时候买的"
       />
-      <div className="flex gap-2">
+      <div className="flex items-center gap-2">
         <Button size="sm" disabled={pending} onClick={() => onSave(name, note)}>
           保存
         </Button>
         <Button size="sm" variant="outline" onClick={onCancel}>
           取消
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={pending}
+          onClick={onDelete}
+          className="ml-auto text-clay hover:bg-clay/10 hover:text-clay"
+        >
+          <Trash2 className="size-4" /> 删除
         </Button>
       </div>
     </div>
