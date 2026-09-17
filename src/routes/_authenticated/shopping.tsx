@@ -242,15 +242,75 @@ function ShoppingPage() {
               return (
                 <li
                   key={item.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2.5 shadow-sm"
+                  className="rounded-xl border border-border bg-card p-3 shadow-sm"
                 >
-                  <span className="flex-1 font-medium">
-                    {item.name}
-                    {item.quantity ? ` · ${item.quantity}` : ""}
-                  </span>
-                  <span className="shrink-0 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
-                    {days} 天后 · due in {days} {days === 1 ? "day" : "days"}
-                  </span>
+                  {editingId === item.id ? (
+                    <div className="space-y-3">
+                      <Input
+                        value={editingName}
+                        onChange={(event) => setEditingName(event.target.value)}
+                        aria-label="物品名称 Item name"
+                      />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs text-muted-foreground">推迟 Postpone：</span>
+                        {[1, 2, 3].map((days) => (
+                          <Button
+                            key={days}
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            disabled={postponeUpcoming.isPending}
+                            onClick={() =>
+                              postponeUpcoming.mutate({
+                                id: item.id,
+                                from: item.buy_after ?? toDateKey(new Date()),
+                                days,
+                              })
+                            }
+                          >
+                            {days} 天
+                          </Button>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={saveUpcomingName.isPending || !editingName.trim()}
+                          onClick={() =>
+                            saveUpcomingName.mutate({ id: item.id, name: editingName.trim() })
+                          }
+                        >
+                          保存
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditingId(null)}
+                        >
+                          取消
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between gap-3">
+                      <button
+                        type="button"
+                        className="flex-1 min-w-0 cursor-pointer text-left font-medium underline-offset-2 hover:underline"
+                        onClick={() => {
+                          setEditingId(item.id);
+                          setEditingName(item.name);
+                        }}
+                      >
+                        {item.name}
+                        {item.quantity ? ` · ${item.quantity}` : ""}
+                      </button>
+                      <span className="shrink-0 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
+                        {days} 天后 · due in {days} {days === 1 ? "day" : "days"}
+                      </span>
+                    </div>
+                  )}
                 </li>
               );
             })}
