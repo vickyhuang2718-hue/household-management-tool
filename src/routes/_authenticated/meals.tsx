@@ -405,6 +405,47 @@ function MealsPage() {
           ))}
         </div>
       )}
+
+      <Dialog
+        open={guideTitle !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setGuideTitle(null);
+            setGuideMeal(null);
+            setGuideText("");
+          }
+        }}
+      >
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{guideTitle} 怎么做</DialogTitle>
+            <DialogDescription>
+              按顺序做这一餐的所有菜，宝宝那份会单独提醒。
+            </DialogDescription>
+          </DialogHeader>
+          {cookingGuide.isPending ? (
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="size-4 animate-spin" /> 正在安排步骤…
+            </p>
+          ) : (
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+              {guideText}
+            </p>
+          )}
+          {guideMeal && !cookingGuide.isPending ? (
+            <Button
+              variant={guideMeal.cooked ? "secondary" : "default"}
+              onClick={() => {
+                toggleCooked.mutate(guideMeal);
+                setGuideMeal({ ...guideMeal, cooked: !guideMeal.cooked });
+              }}
+            >
+              <ChefHat className="size-4" />
+              {guideMeal.cooked ? "取消「已做」" : "标记为已做"}
+            </Button>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
