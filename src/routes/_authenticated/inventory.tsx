@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Pencil, Plus, TriangleAlert, Undo2, X } from "lucide-react";
+import { Pencil, Plus, Undo2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell, useCurrentUserId } from "@/components/household/AppShell";
@@ -276,12 +276,6 @@ function InventoryPage() {
                         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
                           <p className="flex min-w-0 items-center gap-2 font-medium text-foreground">
                             <span className="truncate">{item.name}</span>
-                            {item.status === "out" ? (
-                              <TriangleAlert
-                                className="size-4 shrink-0 text-clay"
-                                aria-label="没有了"
-                              />
-                            ) : null}
                             <button
                               type="button"
                               onClick={() =>
@@ -300,10 +294,14 @@ function InventoryPage() {
                                 type="button"
                                 onClick={() => setStatus.mutate({ item, status: option })}
                                 className={cn(
-                                  "rounded-full border border-border px-2.5 py-1 text-xs transition-colors",
+                                  "rounded-full border px-2.5 py-1 text-xs transition-colors",
                                   item.status === option
-                                    ? "border-transparent bg-primary text-primary-foreground"
-                                    : "text-muted-foreground hover:bg-muted",
+                                    ? option === "low"
+                                      ? "border-transparent bg-ochre text-ochre-foreground"
+                                      : option === "out"
+                                        ? "border-transparent bg-clay text-clay-foreground"
+                                        : "border-transparent bg-primary text-primary-foreground"
+                                    : "border-border text-muted-foreground hover:bg-muted",
                                 )}
                               >
                                 {STOCK_STATUS_LABELS[option]}
