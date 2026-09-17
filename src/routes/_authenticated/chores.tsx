@@ -459,6 +459,71 @@ function ChoreBoard() {
   );
 }
 
+function timeAgo(iso: string) {
+  const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (minutes < 1) return "刚刚";
+  if (minutes < 60) return `${minutes} 分钟前`;
+  return `${Math.floor(minutes / 60)} 小时前`;
+}
+
+function RecentSection({
+  completions,
+  members,
+  open,
+  onToggle,
+}: {
+  completions: RecentCompletion[];
+  members: { id: string; name: string; color: string; initial: string }[];
+  open: boolean;
+  onToggle: () => void;
+}) {
+  if (completions.length === 0) return null;
+
+  return (
+    <section>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground"
+      >
+        {open ? (
+          <ChevronDown className="size-4" />
+        ) : (
+          <ChevronRight className="size-4" />
+        )}
+        刚做完 · {completions.length} 件（近 10 小时）
+      </button>
+      {open && (
+        <ul className="mt-3 space-y-2">
+          {completions.map((entry) => {
+            const member = members.find((m) => m.id === entry.member_id);
+            return (
+              <li
+                key={entry.id}
+                className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-3 opacity-80"
+              >
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  <Check className="size-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium line-through decoration-border">
+                    {entry.chore?.title ?? "家务"}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {member ? `${member.name} · ` : ""}
+                    {timeAgo(entry.created_at)}
+                  </p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 function ChoreGroup({
   heading,
   chores,
