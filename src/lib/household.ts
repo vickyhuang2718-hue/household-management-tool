@@ -114,6 +114,7 @@ export type Profile = {
   email: string | null;
   member_id: string | null;
   household_id: string | null;
+  inventory_reviewed_on: string | null;
 };
 
 export const SLOTS = ["breakfast", "lunch", "dinner"] as const;
@@ -282,7 +283,7 @@ export function profileQuery(userId: string | null) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, email, member_id, household_id")
+        .select("id, email, member_id, household_id, inventory_reviewed_on")
         .eq("id", userId!)
         .maybeSingle();
       if (error) throw new Error(error.message);

@@ -233,10 +233,22 @@ function InventoryPage() {
 
   const lowCount = items.filter((item) => item.status !== "enough").length;
 
-  const lastReview = items.reduce<string | null>((latest, item) => {
-    if (!item.reviewed_at) return latest;
-    return !latest || item.reviewed_at > latest ? item.reviewed_at : latest;
-  }, null);
+  const myReview = profile?.inventory_reviewed_on ?? "";
+
+  const setMyReview = useMutation({
+    mutationFn: async (value: string) => {
+      if (!userId) return;
+      const { error } = await supabase
+        .from("profiles")
+        .update({ inventory_reviewed_on: value || null })
+        .eq("id", userId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
 
   return (
     <AppShell
@@ -300,16 +312,18 @@ function InventoryPage() {
         </section>
       )}
 
-      <p className="mb-5 rounded-xl border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
-        我上次盘点的日期：
-        {lastReview
-          ? new Date(lastReview).toLocaleDateString(LOCALE, {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })
-          : "还没有记录"}
-      </p>
+      <div className="mb-5 flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
+        <Label htmlFor="my-review" className="shrink-0 text-xs font-normal">
+          我上次盘点的日期：
+        </Label>
+        <Input
+          id="my-review"
+          type="date"
+          value={myReview}
+          onChange={(event) => setMyReview.mutate(event.target.value)}
+          className="h-8 w-auto flex-1 text-xs"
+        />
+      </div>
       {isLoading ? (
         <p className="text-sm text-muted-foreground">正在加载库存…</p>
       ) : (

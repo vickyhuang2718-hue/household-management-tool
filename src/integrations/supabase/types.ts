@@ -515,6 +515,7 @@ export type Database = {
           email: string | null
           household_id: string | null
           id: string
+          inventory_reviewed_on: string | null
           member_id: string | null
           updated_at: string
         }
@@ -523,6 +524,7 @@ export type Database = {
           email?: string | null
           household_id?: string | null
           id: string
+          inventory_reviewed_on?: string | null
           member_id?: string | null
           updated_at?: string
         }
@@ -531,6 +533,7 @@ export type Database = {
           email?: string | null
           household_id?: string | null
           id?: string
+          inventory_reviewed_on?: string | null
           member_id?: string | null
           updated_at?: string
         }
