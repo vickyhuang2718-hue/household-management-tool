@@ -1,6 +1,6 @@
 # Family Hub Home
 
-I need a tool to help me run a household of 4, husband, wife, father-in-law, 2-year-old girl. I need the tool to help me assign chores, meal plan, track household inventory and plan shopping trips
+I need a tool to help me run a household of 4，including a 2-year-old girl. I need the tool to help me assign chores, meal plan, track household inventory and plan shopping trips
 
 This project was built with [Lovable](https://lovable.dev).
 
