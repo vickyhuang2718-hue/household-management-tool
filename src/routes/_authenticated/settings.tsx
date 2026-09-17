@@ -256,12 +256,39 @@ function SettingsPage() {
         )}
       </section>
 
-
-      {isAdmin ? (
-        <p className="mt-4 text-xs text-muted-foreground">
-          你是这个家的管理员（第一个注册的人）。
-        </p>
-      ) : null}
+      <section className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
+        <h2 className="text-sm font-semibold text-foreground">家里的成员</h2>
+        <ul className="mt-3 space-y-2">
+          {members.map((member) => {
+            const admin = roleByMember[member.id] === "admin";
+            return (
+              <li key={member.id} className="flex items-center gap-3">
+                <span
+                  className={cn(
+                    "flex size-9 items-center justify-center rounded-full text-sm font-semibold",
+                    memberToneClass[member.color] ?? "bg-muted text-foreground",
+                  )}
+                >
+                  {memberBadge(member)}
+                </span>
+                <span className="text-sm font-medium text-foreground">
+                  {member.name}
+                </span>
+                <span
+                  className={cn(
+                    "ml-auto rounded-full px-2.5 py-1 text-xs font-medium",
+                    admin
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {admin ? "管理员 Admin" : "成员 User"}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
 
       <Button
         variant="outline"
