@@ -68,6 +68,7 @@ function ChoreBoard() {
   const queryClient = useQueryClient();
   const { data: members = [] } = useQuery(membersQuery);
   const { data: chores = [], isLoading } = useQuery(choresQuery);
+  const { data: recent = [] } = useQuery(recentCompletionsQuery);
   const [filter, setFilter] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [selected, setSelected] = useState<Chore | null>(null);
@@ -105,6 +106,7 @@ function ChoreBoard() {
     },
     onSuccess: (chore) => {
       queryClient.invalidateQueries({ queryKey: ["chores"] });
+      queryClient.invalidateQueries({ queryKey: ["chore_completions"] });
       const next = repeatAfter(todayKey, chore.frequency);
       if (next) {
         setRepeatFor(chore);
