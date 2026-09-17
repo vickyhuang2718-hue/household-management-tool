@@ -190,7 +190,7 @@ function SettingsPage() {
                       : "bg-muted text-muted-foreground",
                   )}
                 >
-                  {admin ? "管理员 Admin" : "成员 User"}
+                  {admin ? "管理员" : "成员"}
                 </span>
               </li>
             );
