@@ -239,8 +239,9 @@ function InventoryPage() {
             >
               <div className="min-w-0 flex-1">
                 <p className="font-medium">
-                  {edit.editor_name} 把「{edit.before_name}」改成了「
-                  {edit.after_name}」
+                  {edit.action === "delete"
+                    ? `${edit.editor_name} 删除了「${edit.before_name}」`
+                    : `${edit.editor_name} 把「${edit.before_name}」改成了「${edit.after_name}」`}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   {new Date(edit.created_at).toLocaleDateString(LOCALE, {
@@ -255,7 +256,8 @@ function InventoryPage() {
                 onClick={() => undoEdit.mutate(edit)}
                 disabled={undoEdit.isPending}
               >
-                <Undo2 className="size-4" /> 撤销
+                <Undo2 className="size-4" />{" "}
+                {edit.action === "delete" ? "恢复" : "撤销"}
               </Button>
               <Button
                 size="icon"
