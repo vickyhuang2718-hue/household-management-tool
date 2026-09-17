@@ -348,9 +348,16 @@ function InventoryPage() {
                         )}
                       >
                         <div className="flex items-center justify-between gap-x-3">
-                          <p className="min-w-0 truncate font-medium text-foreground">
-                            {item.name}
-                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setEditing(item.id)}
+                            className="min-w-0 flex-1 cursor-pointer text-left"
+                            aria-label={`编辑 ${item.name}`}
+                          >
+                            <p className="truncate font-medium text-foreground underline-offset-2 hover:underline">
+                              {item.name}
+                            </p>
+                          </button>
                           <Select
                             value={item.status}
                             onValueChange={(value) =>
@@ -385,7 +392,12 @@ function InventoryPage() {
                         </div>
 
                         {item.note && editing !== item.id ? (
-                          <div className="mt-2 rounded-lg bg-muted/60 px-2.5 py-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setEditing(item.id)}
+                            className="mt-2 block w-full cursor-pointer rounded-lg bg-muted/60 px-2.5 py-1.5 text-left"
+                            aria-label={`编辑 ${item.name} 的备注`}
+                          >
                             <p className="text-sm text-foreground">
                               {item.note}{" "}
                               <span className="whitespace-nowrap text-[11px] text-muted-foreground">
@@ -398,7 +410,7 @@ function InventoryPage() {
                                   : ""}
                               </span>
                             </p>
-                          </div>
+                          </button>
                         ) : null}
 
                         {editing === item.id ? (
