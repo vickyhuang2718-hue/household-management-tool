@@ -64,6 +64,7 @@ export type ChoreFields = {
   notes: string | null;
   member_id: string | null;
   frequency: string;
+  due_date: string;
 };
 
 export type ChoreEdit = {
