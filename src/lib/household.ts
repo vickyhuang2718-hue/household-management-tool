@@ -88,6 +88,7 @@ export type ShoppingItem = {
   quantity: string | null;
   category: string;
   checked: boolean;
+  buy_after: string | null;
 };
 
 export type ChoreFields = {
