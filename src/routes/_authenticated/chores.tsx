@@ -626,7 +626,6 @@ function ChoreDetailBody({
   const [notes, setNotes] = useState(chore.notes ?? "");
 
   const member = members.find((m) => m.id === chore.member_id);
-  const next = repeatAfter(todayKey, chore.frequency);
 
   if (editing) {
     return (
