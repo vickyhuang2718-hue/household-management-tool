@@ -58,13 +58,26 @@ function InventoryPage() {
       const quantity = Math.max(0, Number(item.quantity) + delta);
       const { error } = await supabase
         .from("inventory_items")
-        .update({ quantity })
+        .update({ quantity, reviewed_at: new Date().toISOString() })
         .eq("id", item.id);
       if (error) throw new Error(error.message);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["inventory_items"] }),
     onError: (error: Error) => toast.error(error.message),
   });
+
+  const setStatus = useMutation({
+    mutationFn: async ({ item, status }: { item: InventoryItem; status: StockStatus }) => {
+      const { error } = await supabase
+        .from("inventory_items")
+        .update({ status, reviewed_at: new Date().toISOString() })
+        .eq("id", item.id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["inventory_items"] }),
+    onError: (error: Error) => toast.error(error.message),
+  });
+
 
   const addItem = useMutation({
     mutationFn: async (values: {
