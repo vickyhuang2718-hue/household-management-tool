@@ -313,6 +313,31 @@ export const COLOR_LABELS: Record<string, string> = {
   plum: "梅紫 Plum",
 };
 
+export type InventoryEdit = {
+  id: string;
+  item_id: string;
+  editor_name: string;
+  before_name: string;
+  after_name: string;
+  undone: boolean;
+  dismissed: boolean;
+  created_at: string;
+};
+
+export const inventoryEditsQuery = queryOptions({
+  queryKey: ["inventory_edits"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("inventory_edits")
+      .select("*")
+      .eq("dismissed", false)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as InventoryEdit[];
+  },
+});
+
 export const choreEditsQuery = queryOptions({
   queryKey: ["chore_edits"],
   queryFn: async () => {
