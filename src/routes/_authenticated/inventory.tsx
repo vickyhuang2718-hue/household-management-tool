@@ -259,22 +259,17 @@ function InventoryPage() {
                             <button
                               type="button"
                               onClick={() =>
-                                setNoteFor(noteFor === item.id ? null : item.id)
+                                setEditing(editing === item.id ? null : item.id)
                               }
-                              aria-label="备注"
-                              className={cn(
-                                "rounded-full border border-border p-1.5 transition-colors",
-                                item.note
-                                  ? "text-foreground"
-                                  : "text-muted-foreground hover:bg-muted",
-                              )}
+                              aria-label="编辑"
+                              className="rounded-full border border-border p-1.5 text-muted-foreground transition-colors hover:bg-muted"
                             >
-                              <StickyNote className="size-3.5" />
+                              <Pencil className="size-3.5" />
                             </button>
                           </div>
                         </div>
 
-                        {item.note && noteFor !== item.id ? (
+                        {item.note && editing !== item.id ? (
                           <div className="mt-2 rounded-lg bg-muted/60 px-2.5 py-1.5">
                             <p className="text-sm text-foreground">{item.note}</p>
                             <p className="mt-0.5 text-[11px] text-muted-foreground">
