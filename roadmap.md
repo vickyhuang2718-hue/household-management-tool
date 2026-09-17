@@ -11,3 +11,4 @@
 
 - [ ] Family log in (email + password), each account linked to a person
 - [ ] Translate the whole app to Simplified Chinese
+- [ ] Shopping list shown in both Chinese and English
