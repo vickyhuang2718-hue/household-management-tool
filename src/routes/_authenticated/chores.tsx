@@ -24,7 +24,7 @@ import {
   memberBadge,
   memberToneClass,
   membersQuery,
-  nextDueDate,
+  repeatAfter,
   parseDateKey,
   profileQuery,
   toDateKey,
@@ -75,17 +75,28 @@ function ChoreBoard() {
       });
       if (logError) throw new Error(logError.message);
 
-      const next = nextDueDate(chore.due_date, chore.frequency);
       const { error } = await supabase
         .from("chores")
-        .update(next ? { due_date: next } : { archived: true })
+        .update({ archived: true })
         .eq("id", chore.id);
       if (error) throw new Error(error.message);
+
+      const next = repeatAfter(todayKey, chore.frequency);
+      if (next) {
+        const { error: repeatError } = await supabase.from("chores").insert({
+          title: chore.title,
+          notes: chore.notes,
+          frequency: chore.frequency,
+          due_date: next,
+          member_id: null,
+        });
+        if (repeatError) throw new Error(repeatError.message);
+      }
       return next;
     },
     onSuccess: (next) => {
       queryClient.invalidateQueries({ queryKey: ["chores"] });
-      toast.success(next ? "完成啦，下次到期会再出现" : "完成，已从板上移除");
+      toast.success(next ? "完成啦，已新建下一次（待认领）" : "完成，已从板上移除");
     },
     onError: (error: Error) => toast.error(error.message),
   });
