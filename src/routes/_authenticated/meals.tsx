@@ -247,6 +247,20 @@ function MealsPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const dishLibrary: DishDraft[] = (() => {
+    const map = new Map<string, DishDraft>();
+    for (const dish of dishes) {
+      const key = dish.name.trim();
+      if (!key) continue;
+      map.set(key, {
+        name: key,
+        notes: dish.notes ?? "",
+        baby_tag: dish.baby_tag,
+      });
+    }
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
+  })();
+
   const findMeal = (date: Date, slot: string) =>
     meals.find((meal) => meal.meal_date === toDateKey(date) && meal.slot === slot);
 
@@ -351,6 +365,7 @@ function MealsPage() {
                                 baby_tag: dish.baby_tag,
                               }}
                               pending={updateDish.isPending}
+                              library={dishLibrary}
                               onSave={(draft) => updateDish.mutate({ id: dish.id, draft })}
                               onCancel={() => setEditingDish(null)}
                               onDelete={() => deleteDish.mutate(dish.id)}
@@ -368,6 +383,7 @@ function MealsPage() {
                           <DishForm
                             initial={{ name: "", notes: "", baby_tag: "reserve" }}
                             pending={addDish.isPending}
+                            library={dishLibrary}
                             onSave={(draft) =>
                               addDish.mutate({
                                 meal_date: toDateKey(day),
@@ -455,19 +471,21 @@ function DishRow({ dish, onClick }: { dish: MealDish; onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full flex-col items-start gap-1 rounded-lg bg-accent/40 px-3 py-2 text-left"
+      className="w-full rounded-lg bg-accent/40 px-3 py-2 text-left"
     >
-      <span className="font-medium text-foreground">{dish.name}</span>
-      <span
-        className={cn(
-          "rounded-full px-2 py-0.5 text-[11px] font-medium",
-          BABY_TAG_TONES[dish.baby_tag],
-        )}
-      >
-        {BABY_TAG_LABELS[dish.baby_tag]}
+      <span className="flex items-center justify-between gap-2">
+        <span className="min-w-0 flex-1 font-medium text-foreground">{dish.name}</span>
+        <span
+          className={cn(
+            "shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium",
+            BABY_TAG_TONES[dish.baby_tag],
+          )}
+        >
+          {BABY_TAG_LABELS[dish.baby_tag]}
+        </span>
       </span>
       {dish.notes ? (
-        <span className="text-xs text-muted-foreground">{dish.notes}</span>
+        <span className="mt-1 block text-xs text-muted-foreground">{dish.notes}</span>
       ) : null}
     </button>
   );
@@ -479,16 +497,26 @@ function DishForm({
   onCancel,
   onDelete,
   pending,
+  library = [],
 }: {
   initial: DishDraft;
   onSave: (draft: DishDraft) => void;
   onCancel: () => void;
   onDelete?: () => void;
   pending: boolean;
+  library?: DishDraft[];
 }) {
   const [name, setName] = useState(initial.name);
   const [notes, setNotes] = useState(initial.notes);
   const [babyTag, setBabyTag] = useState<BabyTag>(initial.baby_tag);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const query = name.trim().toLowerCase();
+  const suggestions = (
+    query
+      ? library.filter((dish) => dish.name.toLowerCase().includes(query))
+      : library
+  ).slice(0, 6);
 
   return (
     <form
@@ -501,12 +529,45 @@ function DishForm({
     >
       <div className="space-y-2">
         <Label>菜名</Label>
-        <Input
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="例如：番茄炒蛋"
-          required
-        />
+        <div className="relative">
+          <Input
+            value={name}
+            onChange={(event) => {
+              setName(event.target.value);
+              setShowSuggestions(true);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            placeholder="例如：番茄炒蛋"
+            required
+          />
+          {showSuggestions && suggestions.length > 0 ? (
+            <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-border bg-popover shadow-md">
+              {suggestions.map((dish) => (
+                <button
+                  key={dish.name}
+                  type="button"
+                  onClick={() => {
+                    setName(dish.name);
+                    setBabyTag(dish.baby_tag);
+                    if (!notes.trim() && dish.notes) setNotes(dish.notes);
+                    setShowSuggestions(false);
+                  }}
+                  className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-accent"
+                >
+                  <span className="min-w-0 flex-1 truncate">{dish.name}</span>
+                  <span
+                    className={cn(
+                      "shrink-0 rounded-full px-2 py-0.5 text-[11px]",
+                      BABY_TAG_TONES[dish.baby_tag],
+                    )}
+                  >
+                    {BABY_TAG_LABELS[dish.baby_tag]}
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </div>
       <div className="space-y-2">
         <Label>宝宝能不能吃</Label>
