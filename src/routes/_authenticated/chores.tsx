@@ -148,6 +148,16 @@ function ChoreBoard() {
         >
           全家
         </button>
+        <button
+          type="button"
+          onClick={() => setFilter("unassigned")}
+          className={cn(
+            "rounded-full border border-border px-4 py-2 text-sm font-medium transition-colors",
+            filter === "unassigned" ? "bg-primary text-primary-foreground" : "bg-card",
+          )}
+        >
+          待认领
+        </button>
         {members.map((member) => (
           <button
             key={member.id}
