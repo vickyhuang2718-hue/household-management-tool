@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Pencil, Plus, Undo2, X } from "lucide-react";
+import { Pencil, Plus, Trash2, Undo2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell, useCurrentUserId } from "@/components/household/AppShell";
@@ -525,12 +525,21 @@ function ItemEditor({
         rows={2}
         placeholder="写点备注，比如牌子、放在哪、什么时候买的"
       />
-      <div className="flex gap-2">
+      <div className="flex items-center gap-2">
         <Button size="sm" disabled={pending} onClick={() => onSave(name, note)}>
           保存
         </Button>
         <Button size="sm" variant="outline" onClick={onCancel}>
           取消
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={pending}
+          onClick={onDelete}
+          className="ml-auto text-clay hover:bg-clay/10 hover:text-clay"
+        >
+          <Trash2 className="size-4" /> 删除
         </Button>
       </div>
     </div>
