@@ -24,7 +24,7 @@ import {
   memberBadge,
   memberToneClass,
   membersQuery,
-  nextDueDate,
+  repeatAfter,
   parseDateKey,
   profileQuery,
   toDateKey,
@@ -75,17 +75,28 @@ function ChoreBoard() {
       });
       if (logError) throw new Error(logError.message);
 
-      const next = nextDueDate(chore.due_date, chore.frequency);
       const { error } = await supabase
         .from("chores")
-        .update(next ? { due_date: next } : { archived: true })
+        .update({ archived: true })
         .eq("id", chore.id);
       if (error) throw new Error(error.message);
+
+      const next = repeatAfter(todayKey, chore.frequency);
+      if (next) {
+        const { error: repeatError } = await supabase.from("chores").insert({
+          title: chore.title,
+          notes: chore.notes,
+          frequency: chore.frequency,
+          due_date: next,
+          member_id: null,
+        });
+        if (repeatError) throw new Error(repeatError.message);
+      }
       return next;
     },
     onSuccess: (next) => {
       queryClient.invalidateQueries({ queryKey: ["chores"] });
-      toast.success(next ? "完成啦，下次到期会再出现" : "完成，已从板上移除");
+      toast.success(next ? "完成啦，已新建下一次（待认领）" : "完成，已从板上移除");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -93,7 +104,7 @@ function ChoreBoard() {
   const addChore = useMutation({
     mutationFn: async (values: {
       title: string;
-      member_id: string;
+      member_id: string | null;
       frequency: string;
       due_date: string;
     }) => {
@@ -108,7 +119,11 @@ function ChoreBoard() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  const visible = filter ? chores.filter((c) => c.member_id === filter) : chores;
+  const visible = filter
+    ? chores.filter((c) =>
+        filter === "unassigned" ? !c.member_id : c.member_id === filter,
+      )
+    : chores;
   const overdue = visible.filter((c) => c.due_date < todayKey);
   const today = visible.filter((c) => c.due_date === todayKey);
   const upcoming = visible.filter((c) => c.due_date > todayKey);
@@ -132,6 +147,16 @@ function ChoreBoard() {
           )}
         >
           全家
+        </button>
+        <button
+          type="button"
+          onClick={() => setFilter("unassigned")}
+          className={cn(
+            "rounded-full border border-border px-4 py-2 text-sm font-medium transition-colors",
+            filter === "unassigned" ? "bg-primary text-primary-foreground" : "bg-card",
+          )}
+        >
+          待认领
         </button>
         {members.map((member) => (
           <button
@@ -280,14 +305,14 @@ function ChoreForm({
   onCancel: () => void;
   onSubmit: (values: {
     title: string;
-    member_id: string;
+    member_id: string | null;
     frequency: string;
     due_date: string;
   }) => void;
   pending: boolean;
 }) {
   const [title, setTitle] = useState("");
-  const [memberId, setMemberId] = useState(members[0]?.id ?? "");
+  const [memberId, setMemberId] = useState("unassigned");
   const [frequency, setFrequency] = useState<string>("weekly");
   const [dueDate, setDueDate] = useState(toDateKey(new Date()));
 
@@ -296,8 +321,13 @@ function ChoreForm({
       className="mt-8 space-y-4 rounded-xl border border-border bg-card p-4"
       onSubmit={(event) => {
         event.preventDefault();
-        if (!title.trim() || !memberId) return;
-        onSubmit({ title: title.trim(), member_id: memberId, frequency, due_date: dueDate });
+        if (!title.trim()) return;
+        onSubmit({
+          title: title.trim(),
+          member_id: memberId === "unassigned" ? null : memberId,
+          frequency,
+          due_date: dueDate,
+        });
       }}
     >
       <h2 className="text-lg font-semibold">新的家务</h2>
@@ -319,6 +349,7 @@ function ChoreForm({
               <SelectValue placeholder="选一个人" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="unassigned">待认领</SelectItem>
               {members.map((member) => (
                 <SelectItem key={member.id} value={member.id}>
                   {member.name}
@@ -343,6 +374,9 @@ function ChoreForm({
           </Select>
         </div>
       </div>
+      <p className="text-xs text-muted-foreground">
+        勾掉之后会自动生成下一次（按所选周期从完成当天算起，状态为「待认领」）。选「一次性（不重复）」就不会再生成。
+      </p>
       <div className="space-y-2">
         <Label htmlFor="chore-due">第一次到期</Label>
         <Input

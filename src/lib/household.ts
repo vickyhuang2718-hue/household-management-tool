@@ -74,7 +74,7 @@ export const CATEGORIES = [
   "toiletries",
   "baby",
 ] as const;
-export const FREQUENCIES = ["daily", "weekly", "once"] as const;
+export const FREQUENCIES = ["daily", "weekly", "monthly", "once"] as const;
 
 export const SLOT_LABELS: Record<string, string> = {
   breakfast: "早餐",
@@ -94,7 +94,8 @@ export const CATEGORY_LABELS: Record<string, string> = {
 export const FREQUENCY_LABELS: Record<string, string> = {
   daily: "每天",
   weekly: "每周",
-  once: "一次性",
+  monthly: "每月",
+  once: "一次性（不重复）",
 };
 
 export const TODDLER_DEFAULT_NOTE = "先盛出宝宝的那一份，再加盐、香料和其他调味。";
@@ -184,8 +185,18 @@ export function nextDueDate(current: string, frequency: string) {
   const base = parseDateKey(current);
   const today = new Date();
   const from = base > today ? base : today;
+  return repeatAfter(toDateKey(from), frequency);
+}
+
+/** Due date for the follow-up task, counted from the day the task was completed. */
+export function repeatAfter(completedOn: string, frequency: string) {
+  const from = parseDateKey(completedOn);
   if (frequency === "daily") return toDateKey(addDays(from, 1));
   if (frequency === "weekly") return toDateKey(addDays(from, 7));
+  if (frequency === "monthly") {
+    const next = new Date(from.getFullYear(), from.getMonth() + 1, from.getDate());
+    return toDateKey(next);
+  }
   return null;
 }
 
