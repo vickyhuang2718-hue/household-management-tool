@@ -58,33 +58,99 @@ function InventoryPage() {
   const queryClient = useQueryClient();
   const { data: items = [], isLoading } = useQuery(inventoryQuery);
   const [showForm, setShowForm] = useState(false);
-  const [noteFor, setNoteFor] = useState<string | null>(null);
+  const [editing, setEditing] = useState<string | null>(null);
 
   const userId = useCurrentUserId();
   const { data: profile } = useQuery(profileQuery(userId));
   const { data: members = [] } = useQuery(membersQuery);
+  const { data: isAdmin = false } = useQuery(isAdminQuery(userId));
+  const { data: edits = [] } = useQuery({
+    ...inventoryEditsQuery,
+    enabled: isAdmin,
+  });
   const myName =
     members.find((member) => member.id === profile?.member_id)?.name ?? "家人";
 
-  const saveNote = useMutation({
-    mutationFn: async ({ item, note }: { item: InventoryItem; note: string }) => {
+  const saveItem = useMutation({
+    mutationFn: async ({
+      item,
+      name,
+      note,
+    }: {
+      item: InventoryItem;
+      name: string;
+      note: string;
+    }) => {
+      const trimmedName = name.trim() || item.name;
       const trimmed = note.trim();
+      const noteChanged = trimmed !== (item.note ?? "");
       const { error } = await supabase
         .from("inventory_items")
         .update({
+          name: trimmedName,
           note: trimmed || null,
-          note_updated_at: trimmed ? new Date().toISOString() : null,
-          note_updated_by: trimmed ? myName : null,
+          ...(noteChanged
+            ? {
+                note_updated_at: trimmed ? new Date().toISOString() : null,
+                note_updated_by: trimmed ? myName : null,
+              }
+            : {}),
         })
         .eq("id", item.id);
       if (error) throw new Error(error.message);
+
+      if (trimmedName !== item.name) {
+        const { error: logError } = await supabase.from("inventory_edits").insert({
+          item_id: item.id,
+          edited_by: userId,
+          editor_name: myName,
+          before_name: item.name,
+          after_name: trimmedName,
+        });
+        if (logError) throw new Error(logError.message);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventory_items"] });
-      setNoteFor(null);
+      queryClient.invalidateQueries({ queryKey: ["inventory_edits"] });
+      setEditing(null);
     },
     onError: (error: Error) => toast.error(error.message),
   });
+
+  const undoEdit = useMutation({
+    mutationFn: async (edit: InventoryEdit) => {
+      const { error } = await supabase
+        .from("inventory_items")
+        .update({ name: edit.before_name })
+        .eq("id", edit.item_id);
+      if (error) throw new Error(error.message);
+      const { error: markError } = await supabase
+        .from("inventory_edits")
+        .update({ undone: true, dismissed: true })
+        .eq("id", edit.id);
+      if (markError) throw new Error(markError.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inventory_items"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory_edits"] });
+      toast.success("已撤销这次改名");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const dismissEdit = useMutation({
+    mutationFn: async (edit: InventoryEdit) => {
+      const { error } = await supabase
+        .from("inventory_edits")
+        .update({ dismissed: true })
+        .eq("id", edit.id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["inventory_edits"] }),
+    onError: (error: Error) => toast.error(error.message),
+  });
+
 
 
   const setStatus = useMutation({
