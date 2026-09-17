@@ -69,6 +69,7 @@ function ChoreBoard() {
   const [filter, setFilter] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [selected, setSelected] = useState<Chore | null>(null);
+  const [repeatFor, setRepeatFor] = useState<Chore | null>(null);
   const userId = useCurrentUserId();
   const { data: profile } = useQuery(profileQuery(userId));
   const myMemberId = profile?.member_id ?? null;
