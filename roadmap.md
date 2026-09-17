@@ -22,3 +22,4 @@
 - Colours: plum/rose -> teal/cocoa; remove admin editing of others colours
 - [ ] Shopping: upcoming section edit name + postpone 1-3 days (in progress)
 - [ ] Verify shopping page UI (Playwright)
+- [ ] Shopping: remove "Running low" suggestions section
