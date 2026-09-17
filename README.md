@@ -1,14 +1,18 @@
-# Welcome to your Lovable project
+# Family Hub Home
+
+I need a tool to help me run a household of 4, husband, wife, father-in-law, 2-year-old girl. I need the tool to help me assign chores, meal plan, track household inventory and plan shopping trips
 
 This project was built with [Lovable](https://lovable.dev).
 
+**Live app**: https://household-management-tool.lovable.app
+
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/fe12c3db-e1bd-476c-a353-f8c0b93f7144).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +24,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
