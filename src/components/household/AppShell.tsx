@@ -103,7 +103,7 @@ export function AppShell({
                       memberToneClass[member.color] ?? "bg-muted text-foreground",
                     )}
                   >
-                    {member.emoji}
+                    {memberBadge(member)}
                   </span>
                   <span className="font-medium text-foreground">{member.name}</span>
                 </button>
@@ -140,7 +140,7 @@ export function AppShell({
                 )}
                 title={me.name}
               >
-                {me.emoji}
+                {memberBadge(me)}
               </span>
             ) : null}
             <Button variant="ghost" size="icon" aria-label="家庭设置" asChild>
