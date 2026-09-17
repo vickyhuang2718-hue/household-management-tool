@@ -116,6 +116,11 @@ function AuthPage() {
               minLength={6}
               required
             />
+            {mode === "signup" ? (
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                密码提示：至少 6 个字符。请避免常见密码（如 123456、password、生日或手机号）——这些密码已被泄露，会被系统拒绝。建议用一句只有你知道的短句，混合大小写字母和数字，例如「WoJia2SuiBao2026!」。
+              </p>
+            ) : null}
           </div>
           <Button type="submit" size="lg" className="w-full" disabled={pending}>
             {mode === "signin" ? "登录" : "注册"}
