@@ -329,6 +329,15 @@ export const joinRequestsQuery = queryOptions({
   },
 });
 
+export const memberRolesQuery = queryOptions({
+  queryKey: ["member_roles"],
+  queryFn: async () => {
+    const { data, error } = await supabase.rpc("household_member_roles");
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { member_id: string; role: "admin" | "member" }[];
+  },
+});
+
 export function isAdminQuery(userId: string | null) {
   return queryOptions({
     queryKey: ["is_admin", userId],
