@@ -61,6 +61,9 @@ export type InventoryItem = {
   low_threshold: number;
   status: StockStatus;
   reviewed_at: string;
+  note: string | null;
+  note_updated_at: string | null;
+  note_updated_by: string | null;
 };
 
 

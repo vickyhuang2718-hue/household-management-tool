@@ -169,6 +169,9 @@ export type Database = {
           id: string
           low_threshold: number
           name: string
+          note: string | null
+          note_updated_at: string | null
+          note_updated_by: string | null
           quantity: number
           reviewed_at: string
           status: string
@@ -181,6 +184,9 @@ export type Database = {
           id?: string
           low_threshold?: number
           name: string
+          note?: string | null
+          note_updated_at?: string | null
+          note_updated_by?: string | null
           quantity?: number
           reviewed_at?: string
           status?: string
@@ -193,6 +199,9 @@ export type Database = {
           id?: string
           low_threshold?: number
           name?: string
+          note?: string | null
+          note_updated_at?: string | null
+          note_updated_by?: string | null
           quantity?: number
           reviewed_at?: string
           status?: string
