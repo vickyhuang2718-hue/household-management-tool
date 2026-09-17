@@ -123,43 +123,80 @@ function InventoryPage() {
                   {group.map((item) => {
                     const low = item.status !== "enough";
                     return (
-                      <li
+                       <li
                         key={item.id}
                         className={cn(
-                          "rounded-xl border border-border bg-card p-3 shadow-sm",
+                          "rounded-xl border border-border bg-card px-3 py-2.5 shadow-sm",
                           low && "border-clay/50",
                         )}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="min-w-0 flex-1">
-                            <p className="flex items-center gap-2 font-medium text-foreground">
-                              {item.name}
-                              {item.status === "out" ? (
-                                <TriangleAlert
-                                  className="size-4 text-clay"
-                                  aria-label="没有了"
-                                />
-                              ) : null}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="mt-3 flex flex-wrap justify-end gap-1.5">
-                          {STOCK_STATUSES.map((option) => (
+                        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                          <p className="flex min-w-0 items-center gap-2 font-medium text-foreground">
+                            <span className="truncate">{item.name}</span>
+                            {item.status === "out" ? (
+                              <TriangleAlert
+                                className="size-4 shrink-0 text-clay"
+                                aria-label="没有了"
+                              />
+                            ) : null}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {STOCK_STATUSES.map((option) => (
+                              <button
+                                key={option}
+                                type="button"
+                                onClick={() => setStatus.mutate({ item, status: option })}
+                                className={cn(
+                                  "rounded-full border border-border px-2.5 py-1 text-xs transition-colors",
+                                  item.status === option
+                                    ? "border-transparent bg-primary text-primary-foreground"
+                                    : "text-muted-foreground hover:bg-muted",
+                                )}
+                              >
+                                {STOCK_STATUS_LABELS[option]}
+                              </button>
+                            ))}
                             <button
-                              key={option}
                               type="button"
-                              onClick={() => setStatus.mutate({ item, status: option })}
+                              onClick={() =>
+                                setNoteFor(noteFor === item.id ? null : item.id)
+                              }
+                              aria-label="备注"
                               className={cn(
-                                "rounded-full border border-border px-3 py-1 text-xs transition-colors",
-                                item.status === option
-                                  ? "border-transparent bg-primary text-primary-foreground"
+                                "rounded-full border border-border p-1.5 transition-colors",
+                                item.note
+                                  ? "text-foreground"
                                   : "text-muted-foreground hover:bg-muted",
                               )}
                             >
-                              {STOCK_STATUS_LABELS[option]}
+                              <StickyNote className="size-3.5" />
                             </button>
-                          ))}
+                          </div>
                         </div>
+
+                        {item.note && noteFor !== item.id ? (
+                          <div className="mt-2 rounded-lg bg-muted/60 px-2.5 py-1.5">
+                            <p className="text-sm text-foreground">{item.note}</p>
+                            <p className="mt-0.5 text-[11px] text-muted-foreground">
+                              {item.note_updated_by ?? "某人"} ·{" "}
+                              {item.note_updated_at
+                                ? new Date(item.note_updated_at).toLocaleDateString(
+                                    LOCALE,
+                                    { month: "long", day: "numeric" },
+                                  )
+                                : ""}
+                            </p>
+                          </div>
+                        ) : null}
+
+                        {noteFor === item.id ? (
+                          <NoteEditor
+                            item={item}
+                            pending={saveNote.isPending}
+                            onCancel={() => setNoteFor(null)}
+                            onSave={(note) => saveNote.mutate({ item, note })}
+                          />
+                        ) : null}
                       </li>
                     );
                   })}
